@@ -1,0 +1,825 @@
+# Locality lists for resort scraping, all 14 Kerala districts.
+# `localities` are always queried (all four query variants each).
+# `subs` are auto-added when a locality query hits Google's 60-result cap.
+# Sub-localities are also valid search queries on their own, so listing them
+# under localities too is fine (results are deduped by place id).
+#
+# 462 localities -> ~1848 base queries, plus sub-expansion for capped towns.
+# Run districts one at a time; checkpoints keep them independent.
+
+districts:
+  Kozhikode:
+    localities:
+      - Kozhikode
+      - Feroke
+      - Ramanattukara
+      - Beypore
+      - Nadakkavu
+      - Thondayad
+      - Eranhipalam
+      - West Hill
+      - Chevayur
+      - Kunnamangalam
+      - Chelannur
+      - Mavoor
+      - Pantheerankavu
+      - Kakkad
+      - Balussery
+      - Koyilandy
+      - Kadalundi
+      - Ayancheri
+      - Chakkittapara
+      - Valayam
+      - Elettil
+      - Thuneri
+      - Vadakara
+      - Moodadi
+      - Chorode
+      - Perambra
+      - Mukkom
+      - Koduvally
+      - Meppayur
+      - Urukkal
+      - Azhiyur
+    subs:
+      Kozhikode:
+      - Feroke
+      - Ramanattukara
+      - Beypore
+      - Nadakkavu
+      - Thondayad
+      - Eranhipalam
+      - West Hill
+      - Chevayur
+      - Kunnamangalam
+      - Chelannur
+      - Mavoor
+      - Pantheerankavu
+      - Kakkad
+      - Balussery
+      Koyilandy:
+      - Kadalundi
+      - Ayancheri
+      - Chakkittapara
+      - Valayam
+      - Elettil
+      - Thuneri
+      - Urukkal
+      Vadakara:
+      - Moodadi
+      - Chorode
+      - Azhiyur
+      Koduvally:
+      - Meppayur
+      - Thamarassery
+      - Chottanikkara
+  Wayanad:
+    localities:
+      - Kalpetta
+      - Meppadi
+      - Chundale
+      - Vythiri
+      - Lakkidi
+      - Adivaram
+      - Punloor
+      - Karapuzha
+      - Sulthan Bathery
+      - Meenangadi
+      - Nenmeni
+      - Pulpally
+      - Kidangur
+      - Banasura Sagar
+      - Mananthavady
+      - Panamaram
+      - Thirunelli
+      - Achooranam
+      - Pozhuthana
+      - Begur
+    subs:
+      Kalpetta:
+      - Meppadi
+      - Chundale
+      - Vythiri
+      - Lakkidi
+      - Adivaram
+      - Punloor
+      - Karapuzha
+      Sulthan Bathery:
+      - Meenangadi
+      - Nenmeni
+      - Pulpally
+      - Kidangur
+      - Banasura Sagar
+      Mananthavady:
+      - Panamaram
+      - Thirunelli
+      - Achooranam
+      - Pozhuthana
+      - Begur
+  Kasaragod:
+    localities:
+      - Kasaragod
+      - Kanhangad
+      - Honnavar
+      - Bekal
+      - Nileshwaram
+      - Payyanur
+      - Chirakkal
+      - Kottayam
+      - Muthangod
+      - Pallikkara
+      - Chalissery
+      - Kottakkazhi
+      - Puthur
+      - Bedugiri
+      - Kuruvinally
+      - Kummatty
+      - Kanhangad beach
+      - Kasaragod beach
+      - Kannad
+      - Kalliasseri
+      - Chowallur
+      - Pallikkara road
+      - Kanhangad town
+      - Bekal beach
+      - Honnavar beach
+      - Manjeshwar
+      - Shirali
+      - Kaliyasseri
+      - Uppila
+      - Kumbrakkottah
+      - Kottakulangara
+      - Mangalore road
+      - Nileshwaram beach
+      - Bedadone
+      - Cherukunnu
+      - Kannad road
+      - Kasaragod town
+    subs:
+      Kasaragod:
+      - Kanhangad
+      - Honnavar
+      - Bekal
+      - Chirakkal
+      - Nileshwaram
+      - Kottayam
+      - Muthangod
+      - Pallikkara
+      - Kanhangad beach
+      - Kasaragod beach
+      Kanhangad:
+      - Kottakkazhi
+      - Chalissery
+      - Kuruvinally
+      - Kummatty
+      - Puthur
+      Payyanur:
+      - Bedugiri
+      - Kallayi
+      - Kottayam Kannur
+  Kannur:
+    localities:
+      - Kannur
+      - Taliparamba
+      - Payyanur
+      - Thalassery
+      - Kuthuparamba
+      - Chirakkal
+      - Dharmadam
+      - Pannur
+      - Kolachery
+      - Mundur
+      - Chelakkal
+      - Kannad
+      - Chadnakuzhal
+      - Azhikode
+      - Peravoor
+      - Chavakkad
+      - Pazhassi
+      - Athavanad
+      - Mottakkal
+      - Irikkur
+      - Kannur beach
+      - Kaliyassery
+      - Chellakoth
+      - Vellattom
+      - Kadalayi
+      - Panoor
+      - Cherukunnu
+      - Kannad road
+      - Payyannur
+      - Kannur town
+      - Chirakkal beach
+      - Thalassery beach
+      - Kuthuparamba road
+      - Mundur road
+      - Chadnakuzhal beach
+      - Kannur road
+      - Pazhassi road
+      - Irukkur
+      - Kolachery road
+      - Kuttiyadam
+      - Nileshwaram road
+      - Charuvil
+      - Malur
+      - Palakkad road
+      - Muthappan
+      - Chovva
+      - Kallayi
+      - Kuttiyatta
+    subs:
+      Kannur:
+      - Taliparamba
+      - Kuthuparamba
+      - Chirakkal
+      - Dharmadam
+      - Chelakkal
+      - Athavanad
+      - Mottakkal
+      - Irikkur
+      - Azhikode
+      - Kannur beach
+      Payyanur:
+      - Peravoor
+      - Chavakkad
+      - Kaliyassery
+      - Kottayam
+      Thalassery:
+      - Pannur
+      - Kannad
+      - Cherukunnu
+      - Panoor
+      - Thalassery beach
+  Malappuram:
+    localities:
+      - Malappuram
+      - Perinthalmanna
+      - Manjeri
+      - Nilambur
+      - Tirur
+      - Tanur
+      - Ponnani
+      - Vengara
+      - Perumpadappu
+      - Kalikavu
+      - Edappally
+      - Kuttippuram
+      - Tirurangadi
+      - Wandoor
+      - Maranchery
+      - Moothedam
+      - Thenjipatham
+      - Chamravattom
+      - Elamkulam
+      - Thavanur
+      - Kuttippuram beach
+      - Areni
+      - Karulai
+      - Kondotty
+      - Nedumangad
+    subs:
+      Malappuram:
+      - Perinthalmanna
+      - Manjeri
+      - Nilambur
+      - Vengara
+      - Perumpadappu
+      - Maranchery
+      - Moothedam
+      - Thenjipatham
+      - Elamkulam
+      - Karulai
+      Tirur:
+      - Tanur
+      - Ponnani
+      - Thavanur
+      - Vadakara road
+      Perinthalmanna:
+      - Kalikavu
+      - Edappally
+      - Thenjipatham
+      Nilambur:
+      - Wandoor
+      - Chamravattom
+      - Moothedam
+  Palakkad:
+    localities:
+      - Palakkad
+      - Punalur
+      - Chittur
+      - Alathur
+      - Thrissur road
+      - Kollam road
+      - Koduvally road
+      - Malampuzha
+      - Kanjikkode
+      - Shornur
+      - Mannarkkad
+      - Chenganassery
+      - Kallissery
+      - Kodakkal
+      - Karulai
+      - Mannarshala
+      - Edavoor
+      - Kottakkara
+      - Palakkad DVG
+      - Parutha
+      - Kizhakancherry
+      - Pookkottur
+      - Pazhamala
+      - Elappully
+      - Ananganadi
+      - Thattathatta
+      - Vadakarumbady
+      - Nenmara
+      - Karunagappalli
+    subs:
+      Palakkad:
+      - Malampuzha
+      - Kanjikkode
+      - Parutha
+      - Pazhamala
+      - Elappully
+      - Pookkottur
+      - Palakkad DVG
+      Punalur:
+      - Kollam road
+      - Edavoor
+      - Edakkara
+      - Thenkurissu
+      Chittur:
+      - Alathur
+      - Kodakkal
+      Shornur:
+      - Mannarkkad
+      - Karulai
+      - Chenganassery
+  Thrissur:
+    localities:
+      - Thrissur
+      - Kodungallur
+      - Chalakudy
+      - Kunnathur
+      - Irinjalakuda
+      - Wadakkunnath
+      - Chowannur
+      - Guruvayur
+      - Mala
+      - Punalur
+      - Kollam
+      - Vazhappilly
+      - Kuttanad
+      - Chavakulam
+      - Velanchery
+      - Poonhur
+      - Karunagappally
+      - Thrissur medical college
+      - Poothole
+      - Pookkottur
+      - Chalakudy beach
+      - Perinchelur
+      - Kodungallur beach
+      - Akkareekadu
+      - Nettur
+      - Mutholy
+      - Pazhayakunnummel
+      - Kumbalanghi
+      - Malakkapara
+      - Perumbavoor road
+    subs:
+      Thrissur:
+      - Kodungallur
+      - Chalakudy
+      - Irinjalakuda
+      - Wadakkunnath
+      - Kollam
+      - Punalur
+      - Chowannur
+      - Vazhappilly
+      - Pookkottur
+      - Poothole
+      Chalakudy:
+      - Kunnathur
+      - Mala
+      - Pazhayakunnummel
+      - Chalakudy beach
+      Irinjalakuda:
+      - Kuttanad
+      - Chavakulam
+      - Nettur
+      - Velanchery
+  Ernakulam:
+    localities:
+      - Ernakulam
+      - Kakkanad
+      - Edappally
+      - Aluva
+      - Kalamassery
+      - Thrikkakara
+      - Kochi
+      - Fort Kochi
+      - Thripunithura
+      - Chendamangalam
+      - North Paravur
+      - Kumbalanghi
+      - Cherthala
+      - Kumarapuram
+      - Muvattupuzha
+      - Perumbavoor
+      - Kothamangalam
+      - Palluruthy
+      - Vypin
+      - Cheranallur
+      - Kadamakkudy
+      - Angamaly
+      - Chowallur
+      - Kakkanad beach
+      - Kochi beach
+      - Maradu
+      - Kalamassery road
+      - Thrikkaipetta
+      - Pindimara
+      - Vengola
+      - Chottanikkara
+      - Peejattur
+      - Ramamangalam
+      - Kangarappady
+      - Aroor
+      - Chembumukku
+      - Kizhakkemulam
+      - Neroparambu
+      - Pallikkara
+    subs:
+      Ernakulam:
+      - Kakkanad
+      - Edappally
+      - Aluva
+      - Thrikkakara
+      - Thripunithura
+      - Kangarappady
+      - Fort Kochi
+      - Palluruthy
+      - Kakamassery
+      - Maradu
+      - Vengola
+      Kochi:
+      - Fort Kochi
+      - Vypin
+      - Cheranallur
+      - Kumbalanghi
+      - Palluruthy
+      - Chembumukku
+      - Kochi beach
+      North Paravur:
+      - Chendamangalam
+      - Cherthala
+      - Kumarapuram
+      - Aroor
+      Muvattupuzha:
+      - Perumbavoor
+      - Kothamangalam
+      - Ramamangalam
+      - Marayoor
+      Angamaly:
+      - Kalamassery
+      - Chowallur
+      - Peejattur
+  Idukki:
+    localities:
+      - Idukki
+      - Thekkady
+      - Kumily
+      - Munnar
+      - Kuttikkanam
+      - Thodupuzha
+      - Kadikkal
+      - Vattavada
+      - Chinnar
+      - Anamkhi
+      - Ramakkalmedu
+      - Kumily road
+      - Chinnar road
+      - Ayyanparambu
+      - Kudremalai
+      - Kottayam road
+      - Peringamala
+      - Munnar road
+      - Rajakkal
+      - Ponnumpara
+      - Udumbanchoor
+      - Thodupuzha town
+      - Kanjirappally road
+      - Sultanpet
+      - Vellimalai
+      - Kadayar
+      - Kozhikode road
+    subs:
+      Idukki:
+      - Thekkady
+      - Kumily
+      - Ramakkalmedu
+      - Vattavada
+      - Kottayam road
+      - Chinnar road
+      Munnar:
+      - Kumily road
+      - Kuttikkanam
+      - Rajakkal
+      - Anamkhi
+      Thodupuzha:
+      - Kudremalai
+      - Ayyanparambu
+      - Ponnumpara
+      - Kanjirappally road
+  Kottayam:
+    localities:
+      - Kottayam
+      - Kumarakom
+      - Mavelikara
+      - Pala
+      - Thodupuzha
+      - Changanassery
+      - Vaikom
+      - Mundroor
+      - Kanjirappally
+      - Poonjar
+      - Erumely
+      - Moozhoor
+      - Kumily
+      - Pathanamthitta
+      - Vagamon
+      - Marianamala
+      - Chirakkal
+      - Meenachil
+      - Kaloor
+      - Thalayolaparambu
+      - Thrikkoor
+      - Pandalam
+      - Kuttanad
+      - Kottayam beach
+      - Kidangoor
+      - Manganam
+      - Kumily road
+      - Velamattom
+      - Aranmulla
+      - Vechoor
+      - Puthenpally
+      - Kottappuzha
+      - Kadakam
+      - Pravallimedu
+      - Cheruthalady
+    subs:
+      Kottayam:
+      - Kumarakom
+      - Mavelikara
+      - Pala
+      - Vaikom
+      - Chirakkal
+      - Meenachil
+      - Changanassery
+      - Thalayolaparambu
+      - Kidangoor
+      Thodupuzha:
+      - Mundroor
+      - Kanjirappally
+      - Moozhoor
+      - Erumely
+      - Marayoor
+      Kumarakom:
+      - Vaikom
+      - Kuttanad
+      - Kottayam beach
+  Alappuzha:
+    localities:
+      - Alappuzha
+      - Ambalappuzha
+      - Mararikulam
+      - Haripad
+      - Chennamkary
+      - Vandanam
+      - Sree Vallam
+      - Nooranad
+      - Kandallur
+      - Edathua
+      - Thuravoor
+      - Mannancherry
+      - Kayamkulam
+      - Punalur
+      - Marari
+      - Alangad
+      - Kuttanad
+      - Vembanad
+      - Ambalappuzha beach
+      - Sree Vallam beach
+      - Thottakam
+      - Kuttoor
+      - Karis
+      - Vellinezhi
+      - Cherthala
+      - Haripad beach
+      - Thanneermukkom
+      - Pallana
+      - Neendakara
+      - Chett immature
+      - Mavelikara road
+      - Parumala
+      - Manakkara
+      - Karimancode
+      - Ulloor
+    subs:
+      Alappuzha:
+      - Ambalappuzha
+      - Mararikulam
+      - Mannancherry
+      - Kayamkulam
+      - Alangad
+      - Vandanam
+      - Sree Vallam
+      - Thottakam
+      - Alappuzha beach
+      - Parumala
+      Haripad:
+      - Punalur
+      - Kandallur
+      - Thuravoor
+      - Edathua
+      - Neendakara
+      Chennamkary:
+      - Nooranad
+      - Marari
+      - Kuttanad
+  Pathanamthitta:
+    localities:
+      - Pathanamthitta
+      - Thiruvalla
+      - Ranny
+      - Panchamadam
+      - Kollam
+      - Elanthoor
+      - Kozhancherry
+      - Kumbanad
+      - Cherthala
+      - Mylapra
+      - Churulikkara
+      - Kuriara
+      - Thottam
+      - Aroor
+      - Parumala
+      - Mylapra road
+      - Pathanamthitta road
+      - Kozhancherry road
+      - Thiruvalla road
+      - Ennakadu
+      - Melattur
+      - Kunnamthanam
+      - Pandalam
+      - Thiruvalla beach
+      - Ezhimala
+      - Kalpara
+      - Peringara
+      - Nilackal
+      - Chempu
+      - Edappady
+      - Thazhava
+      - Vallamkara
+    subs:
+      Pathanamthitta:
+      - Thiruvalla
+      - Panchamadam
+      - Elanthoor
+      - Kozhancherry
+      - Mylapra
+      - Churulikkara
+      - Ezhimala
+      - Kalpara
+      Thiruvalla:
+      - Melattur
+      - Kunnamthanam
+      - Nilackal
+      - Thiruvalla beach
+      Ranny:
+      - Mylapra road
+      - Nilackal
+      - Chempu
+      - Peringara
+  Kollam:
+    localities:
+      - Kollam
+      - Karunagappally
+      - Chavakkulam
+      - Thuravoor
+      - Neendakara
+      - Punalur
+      - Kumbalanghi
+      - Mavelikara road
+      - Kollam beach
+      - Paravur
+      - Chayam
+      - Alappuzha road
+      - Pathanapuram
+      - Sooranagar
+      - Eraniel
+      - Chettumala
+      - Perinad
+      - Ottapalam
+      - Thenmada
+      - Kollam road
+      - Thamarassery
+      - Edava
+      - Karinkuzhy
+      - Vellayam
+      - Mayyanad
+      - Kadkkarappady
+      - Punalur road
+      - Uchakkal
+      - Chithira
+      - Kallara
+    subs:
+      Kollam:
+      - Karunagappally
+      - Chavakkulam
+      - Thuravoor
+      - Neendakara
+      - Punalur
+      - Sooranagar
+      - Eraniel
+      - Perinad
+      - Kollam beach
+      - Thamarassery
+      Karunagappally:
+      - Chayam
+      - Sooranagar
+      - Thenmada
+      - Kallara
+      Thuravoor:
+      - Neendakara
+      - Ottapalam
+      - Edava
+  Thiruvananthapuram:
+    localities:
+      - Thiruvananthapuram
+      - Kovalam
+      - Varkala
+      - Nagercoil
+      - Thiruvallam
+      - Kazhakude
+      - Pothencode
+      - Balaramapuram
+      - Vamanapuram
+      - Kattakkara
+      - Maroor
+      - Neyyattinkara
+      - Kanyakumari
+      - Thikkurissy
+      - Anadhi
+      - Punalur
+      - Athirappilly
+      - Muthanga
+      - Ponmudi
+      - Vellayani
+      - Kuriyara
+      - Edava
+      - Kallara
+      - Chempu
+      - Ambalathara
+      - Nedumangad
+      - Aloor
+      - Kudavoyal
+      - Neyyadinkara
+      - Vakayar
+      - Karicode
+      - Kallankode
+      - Parassala
+      - Vilappuram
+      - Puthenpally
+      - Chundakuzhy
+      - Kiliyoor
+      - Kovalam beach
+      - Perumthanni
+      - Kannurumala
+      - Ananthapuram
+      - Kottukara
+      - Sarkara
+      - Cherthakara
+    subs:
+      Thiruvananthapuram:
+      - Kovalam
+      - Varkala
+      - Balaramapuram
+      - Vamanapuram
+      - Kattakkara
+      - Maroor
+      - Pothencode
+      - Kazhakude
+      - Neyyattinkara
+      - Kovalam beach
+      Nagercoil:
+      - Parassala
+      - Thikkurissy
+      - Kanyakumari
+      - Vilappuram
+      Thiruvallam:
+      - Nedumangad
+      - Ambalathara
+      - Aloor
+      - Edava

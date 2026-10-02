@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resorts-scraper"
+version = "0.1.0"
+description = "Google Maps resort scraper built on Scrapling (search + details pb endpoints, CSV export)"
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+fetchers = ["scrapling[fetchers]>=0.4"]
+
+[project.scripts]
+resorts = "resorts_scraper.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
