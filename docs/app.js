@@ -1,6 +1,7 @@
 /* Kerala Field Notes — data, filters, terrain field, live location images. */
 
 const DATA_URL = "data/resorts.json";
+const DATA_URL_ALL = "data/resorts-all.json";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 // Supabase Edge Function that fetches an image live, stores it in the
 // `locations` bucket, records it in `location_images`, and returns the URL.
@@ -37,7 +38,10 @@ const state = {
   minRating: 0,
   sort: "rank",
   limit: 12,
+  scope: "top",
 };
+
+const DATASETS = { top: null, all: null };
 
 let DATA = null;
 let FILTERED = [];
@@ -57,21 +61,38 @@ async function init() {
   cacheElements();
   bindStaticEvents();
   try {
-    const response = await fetch(DATA_URL, { cache: "no-cache" });
-    if (!response.ok) throw new Error(`Dataset ${response.status}`);
-    DATA = await response.json();
+    DATASETS.top = await loadDataset(DATA_URL);
+    DATA = DATASETS.top;
   } catch (error) {
     console.error(error);
     el.resultCount.textContent = "The shortlist could not load. Try a refresh.";
     return;
   }
 
+  state.scope = new URLSearchParams(window.location.search).get("scope") === "all" ? "all" : "top";
+  if (state.scope === "all") {
+    try {
+      DATASETS.all = await loadDataset(DATA_URL_ALL);
+      DATA = DATASETS.all;
+    } catch (error) {
+      console.error(error);
+      state.scope = "top";
+    }
+  }
+
   applyMeta();
   renderFilterOptions();
   readURL();
   syncControls();
+  syncScope();
   buildField();
   applyFilters({ animate: false });
+}
+
+async function loadDataset(url) {
+  const response = await fetch(url, { cache: "no-cache" });
+  if (!response.ok) throw new Error(`Dataset ${response.status}`);
+  return response.json();
 }
 
 function cacheElements() {
@@ -99,6 +120,7 @@ function cacheElements() {
   el.fieldCount = document.getElementById("field-count");
   el.mustInputs = Array.from(document.querySelectorAll("[data-must]"));
   el.heroCredit = document.querySelector("[data-hero-credit]");
+  el.scopeButtons = Array.from(document.querySelectorAll("[data-scope]"));
 }
 
 function bindStaticEvents() {
@@ -145,6 +167,10 @@ function bindStaticEvents() {
   el.settingChips.addEventListener("click", onChipClick(state.settings));
   el.typeChips.addEventListener("click", onChipClick(state.types));
   el.budgetChips.addEventListener("click", onChipClick(state.budgets));
+
+  el.scopeButtons.forEach((button) => {
+    button.addEventListener("click", () => setScope(button.dataset.scope));
+  });
 
   el.clear.addEventListener("click", resetFilters);
   document.querySelectorAll("[data-reset]").forEach((button) => {
@@ -229,8 +255,43 @@ function applyMeta() {
   }
 }
 
+function syncScope() {
+  for (const button of el.scopeButtons) {
+    button.setAttribute("aria-pressed", button.dataset.scope === state.scope ? "true" : "false");
+  }
+}
+
+async function setScope(scope) {
+  if (scope === state.scope) return;
+  if (scope === "all" && !DATASETS.all) {
+    el.resultCount.textContent = "Loading all 7,813 stays…";
+    try {
+      DATASETS.all = await loadDataset(DATA_URL_ALL);
+    } catch (error) {
+      console.error(error);
+      el.resultCount.textContent = "The full dataset could not load.";
+      return;
+    }
+  }
+  state.scope = scope;
+  DATA = DATASETS[scope];
+  state.limit = 12;
+  applyMeta();
+  renderFilterOptions();
+  syncScope();
+  syncControls();
+  buildField();
+  applyFilters();
+}
+
 function renderFilterOptions() {
   const meta = DATA.meta || {};
+  el.settingChips.replaceChildren();
+  el.typeChips.replaceChildren();
+  el.budgetChips.replaceChildren();
+  const keep = el.district.options[0];
+  el.district.replaceChildren(keep);
+
   const stayDistricts = new Map();
   for (const stay of DATA.stays) {
     if (!stay.district) continue;
@@ -313,6 +374,7 @@ function writeURL() {
   if (state.must.size) params.set("must", Array.from(state.must).join(","));
   if (state.minRating) params.set("rating", String(state.minRating));
   if (state.sort && state.sort !== "rank") params.set("sort", state.sort);
+  if (state.scope === "all") params.set("scope", "all");
   const query = params.toString();
   const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
   window.history.replaceState(null, "", url);
@@ -384,7 +446,10 @@ function filterAndSort() {
         ...(stay.best_for || []),
         ...(stay.why || []),
       ].join(" ").toLowerCase();
-      if (!tokens.every((token) => haystack.includes(token))) return false;
+      // Names often split words ("Tree House"). Compare the space-stripped
+      // form too, so "treehouse" still matches.
+      const compact = haystack.replace(/[^a-z0-9]/g, "");
+      if (!tokens.every((token) => haystack.includes(token) || compact.includes(token))) return false;
     }
     if (state.settings.size && !state.settings.has(stay.setting)) return false;
     if (state.district && stay.district !== state.district) return false;
@@ -590,6 +655,9 @@ async function resolveFromImageApi(key, stay) {
     district: stay.district || "",
     setting: stay.setting_label || stay.setting || "landscape",
   });
+  // The full-record dataset carries the place id, so the function can reuse an
+  // image the background harvester already stored for that listing.
+  if (stay.place_id) params.set("place_id", stay.place_id);
   try {
     const res = await fetch(`${IMAGE_API}?${params.toString()}`, {
       cache: "no-store",
@@ -844,7 +912,12 @@ function buildField() {
   svg.append(make("text", { x: plot.right, y: H - 5, "text-anchor": "end", class: "field-grid-label" }, "WEST COAST  →  WESTERN GHATS"));
 
   const dots = new Map();
-  DATA.stays.forEach((stay, index) => {
+  // In all-listings mode the field would need 7,813 circles. Sample a spread
+  // instead; the terrain field is orientation, not a full scatter plot.
+  const dotStays = DATA.stays.length > 420
+    ? DATA.stays.filter((_, index) => index % Math.ceil(DATA.stays.length / 420) === 0)
+    : DATA.stays;
+  dotStays.forEach((stay, index) => {
     const category = SETTING_COLORS[stay.setting] || "land";
     const jitterX = ((index * 37) % 13 - 6) * 1.05;
     const jitterY = ((index * 53) % 11 - 5) * 0.9;

@@ -83,6 +83,14 @@ Deno.serve(async (req: Request) => {
     setting: clean(url.searchParams.get("setting")) || "landscape",
   };
 
+  // When the caller knows the listing, prefer an image the background harvester
+  // already stored for that place. Avoids fetching and storing a second copy.
+  const placeId = (url.searchParams.get("place_id") ?? "").trim().slice(0, 120);
+  if (placeId) {
+    const scraped = await findScraped(base, service, placeId);
+    if (scraped) return json({ ...scraped, stored: true, source: "scraped" }, 200, noStore(cors));
+  }
+
   try {
     const existing = await findStored(base, service, key);
     if (existing) return json({ ...existing, stored: true, source: "storage" }, 200, noStore(cors));
@@ -191,6 +199,27 @@ async function findStored(base: string, service: string, key: string) {
     url: row.public_url,
     page: row.source_page ?? "",
     title: row.title ?? "",
+    author: row.author ?? "Wikimedia Commons",
+    license: row.license ?? "See source",
+    license_url: row.license_url ?? "",
+    alt: row.alt ?? "",
+  };
+}
+
+async function findScraped(base: string, service: string, placeId: string) {
+  const res = await rest(
+    base,
+    service,
+    `listing_media?place_id=eq.${encodeURIComponent(placeId)}&select=public_url,source_page,commons_title,author,license,license_url,alt&order=score.desc&limit=1`,
+  );
+  if (!res.ok) return null;
+  const rows = await res.json();
+  const row = Array.isArray(rows) && rows[0];
+  if (!row?.public_url) return null;
+  return {
+    url: row.public_url,
+    page: row.source_page ?? "",
+    title: row.commons_title ?? "",
     author: row.author ?? "Wikimedia Commons",
     license: row.license ?? "See source",
     license_url: row.license_url ?? "",

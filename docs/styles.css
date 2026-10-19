@@ -1194,6 +1194,41 @@ body.is-inner .header-cta:hover {
   padding: 1rem 0;
 }
 
+.scope-switch {
+  display: inline-flex;
+  border: 1px solid var(--line, #d8d2c6);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.scope-switch button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+}
+
+.scope-switch button + button {
+  border-left: 1px solid var(--line, #d8d2c6);
+}
+
+.scope-switch button[aria-pressed="true"] {
+  background: var(--ink, #1d1a16);
+  color: var(--paper, #f7f4ee);
+}
+
+.scope-switch button:focus-visible {
+  outline: 2px solid var(--accent, #a8622c);
+  outline-offset: 2px;
+}
+
 .result-count {
   color: var(--muted);
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
