@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API — Kerala Field Notes</title>
+  <meta name="description" content="Read-only API for the Kerala Field Notes dataset: 7,813 Kerala stays with 48 enriched fields. Query with the public key, filter, sort, page and export as JSON or CSV.">
+  <meta name="theme-color" content="#f3eee4">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Instrument+Sans:ital,wght@0,400..700;1,400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-inner">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" data-header>
+    <a class="brand" href="index.html" aria-label="Kerala Field Notes, home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 34 34" fill="none"><path d="M4 24.5c5.4-7.6 8.7-3.9 13.1-8.4C21.7 11.4 24.8 8 30 6.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 29c6.3-4.8 9.4-1.4 14.1-5.6 4.2-3.7 7.6-6.7 11.9-7.1" stroke="currentColor" stroke-width="1.4" opacity=".5"/><circle cx="17" cy="17" r="2.2" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-type"><span>Kerala</span><em>Field Notes</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html#shortlist">Shortlist</a>
+      <a href="index.html#terrain">Terrain</a>
+      <a href="method.html">Method</a>
+      <a href="api.html" aria-current="page">API</a>
+      <a href="index.html#data">Data</a>
+    </nav>
+    <a class="header-cta" href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper" target="_blank" rel="noopener">Repository <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="main">
+    <header class="page-hero">
+      <p class="section-label">API / read only</p>
+      <h1>The dataset, <em>as an endpoint.</em></h1>
+      <p class="page-dek">Every published row is readable over HTTPS with a public, read-only key. Filter, sort, page and export the same 7,813 stays the site filters, as JSON or CSV. No sign-up, no secret.</p>
+    </header>
+
+    <div class="prose-wrap">
+      <article class="prose">
+        <p class="lede">The API is PostgREST over a Postgres table with row-level security. The key below is publishable and already shipped in the site's JavaScript. It grants read only. There is no server to run and no token to rotate for you.</p>
+
+        <h2 id="endpoint">01 / Endpoint and key</h2>
+        <p>Base URL and the public key. Send the key in the <code>apikey</code> header on every request.</p>
+        <pre><code>https://lurkdmbjoapgimruktfs.supabase.co/rest/v1
+
+apikey: sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A</code></pre>
+
+        <h2 id="quickstart">02 / Quick start</h2>
+        <p>Ten rows, newest shortlist first, as JSON.</p>
+        <pre><code>curl "https://lurkdmbjoapgimruktfs.supabase.co/rest/v1/resorts_enriched?select=name,district,rating,affordability&amp;order=rating.desc.nullslast&amp;limit=10" \
+  -H "apikey: sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A"</code></pre>
+
+        <p>The same in the browser.</p>
+        <pre><code>const res = await fetch(
+  "https://lurkdmbjoapgimruktfs.supabase.co/rest/v1/resorts_enriched" +
+    "?select=name,district,rating&amp;swimming_pool=eq.yes&amp;limit=5",
+  { headers: { apikey: "sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A" } }
+);
+console.log(await res.json());</code></pre>
+
+        <p>The same in Python.</p>
+        <pre><code>import urllib.request, json
+
+url = ("https://lurkdmbjoapgimruktfs.supabase.co/rest/v1/resorts_enriched"
+       "?select=name,district,elevation_m&amp;elevation_m=gt.1200&amp;order=elevation_m.desc")
+req = urllib.request.Request(url, headers={
+    "apikey": "sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A"})
+rows = json.load(urllib.request.urlopen(req))
+print(len(rows), rows[0])</code></pre>
+
+        <h2 id="tables">03 / Endpoints</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Path</th><th>Rows</th><th>What it holds</th></tr></thead>
+            <tbody>
+              <tr><td><code>resorts_enriched</code></td><td>7,813</td><td>The published dataset, 48 columns. Start here.</td></tr>
+              <tr><td><code>resorts_source</code></td><td>7,813</td><td>The raw source row, 14 columns, before enrichment.</td></tr>
+              <tr><td><code>location_images</code></td><td>varies</td><td>Resolved location photos per image key, with credit fields.</td></tr>
+              <tr><td><code>listing_media</code></td><td>varies</td><td>Photos harvested per listing (keyed by <code>place_id</code>).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Storage objects are public under <code>/storage/v1/object/public/locations/&lt;path&gt;</code>. The <code>public_url</code> column already holds the full link.</p>
+
+        <h2 id="queries">04 / Filtering, sorting, selecting</h2>
+        <p>Query parameters are PostgREST operators. Use them the way you would a SQL <code>WHERE</code>, plus an <code>ORDER BY</code> and a column list.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Parameter</th><th>Example</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>select</code></td><td><code>select=name,district,rating</code></td><td>Return only these columns. <code>*</code> returns all 48.</td></tr>
+              <tr><td><code>eq</code> / <code>neq</code></td><td><code>district=eq.Idukki</code></td><td>Equal / not equal.</td></tr>
+              <tr><td><code>gt</code> / <code>gte</code> / <code>lt</code> / <code>lte</code></td><td><code>rating=gte.4.5</code></td><td>Numeric comparison.</td></tr>
+              <tr><td><code>in</code></td><td><code>district=in.(Wayanad,Idukki)</code></td><td>Match any value in a list.</td></tr>
+              <tr><td><code>ilike</code></td><td><code>name=ilike.*tree*</code></td><td>Case-insensitive pattern. <code>*</code> is the wildcard.</td></tr>
+              <tr><td><code>is</code></td><td><code>rating=is.null</code></td><td>Null check.</td></tr>
+              <tr><td><code>order</code></td><td><code>order=rating.desc.nullslast</code></td><td>Sort. Append <code>.desc</code> or <code>.asc</code>, and <code>.nullsfirst</code> or <code>.nullslast</code>.</td></tr>
+              <tr><td><code>limit</code> / <code>offset</code></td><td><code>limit=100&amp;offset=200</code></td><td>Page size and start row.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>1,395 rows have no rating</strong>, so <code>rating</code> and <code>review_count</code> can be null. A descending sort puts nulls first by default. Add <code>.nullslast</code> to push them to the end, as the examples here do.</p>
+        <p>Example: highly rated pool stays in the hill districts, best reviewed first.</p>
+        <pre><code>curl "https://lurkdmbjoapgimruktfs.supabase.co/rest/v1/resorts_enriched?select=name,district,rating,review_count&amp;swimming_pool=eq.yes&amp;environment_primary=eq.hill&amp;rating=gte.4.5&amp;order=review_count.desc&amp;limit=20" \
+  -H "apikey: sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A"</code></pre>
+
+        <h2 id="paging">05 / Paging past 1,000 rows</h2>
+        <p>One request returns at most <strong>1,000 rows</strong>. Walk the set with <code>offset</code>, in steps of 1,000, until a page comes back short.</p>
+        <pre><code>offset=0, 1000, 2000, 3000, 4000, 5000, 6000, 7000  →  8 requests cover all 7,813</code></pre>
+        <p>The response <code>Content-Range</code> header reports the slice and the total, for example <code>0-999/7813</code>. To get a count without the rows, send <code>Prefer: count=exact</code> with <code>Range: 0-0</code>.</p>
+
+        <h2 id="formats">06 / JSON and CSV</h2>
+        <p>JSON is the default. Ask for CSV with the <code>Accept</code> header. The same filters apply.</p>
+        <pre><code>curl "https://lurkdmbjoapgimruktfs.supabase.co/rest/v1/resorts_enriched?select=*&amp;district=eq.Wayanad" \
+  -H "apikey: sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A" \
+  -H "Accept: text/csv" -o wayanad.csv</code></pre>
+        <div class="aside-note">
+          <p class="section-label">Static downloads</p>
+          <p>The full enriched CSV also lives in the repository, no key needed: <a href="https://raw.githubusercontent.com/nabeelmusthafawork/kerala-resorts-scraper/master/output/kerala_resorts_enriched.csv">kerala_resorts_enriched.csv</a>. The site's own JSON is at <a href="data/resorts-all.json">data/resorts-all.json</a>.</p>
+        </div>
+
+        <h2 id="fields">07 / The 48 fields</h2>
+        <p>Grouped for orientation. The exact domains and derivation rules are in the <a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/blob/master/output/ENRICHMENT_FIELDS.md" target="_blank" rel="noopener">field dictionary</a>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Group</th><th>Fields</th></tr></thead>
+            <tbody>
+              <tr><td>Identity</td><td><code>id</code>, <code>name</code>, <code>title</code>, <code>description</code>, <code>place_id</code>, <code>address</code></td></tr>
+              <tr><td>Contact</td><td><code>phone</code>, <code>email</code>, <code>website</code></td></tr>
+              <tr><td>Location</td><td><code>latitude</code>, <code>longitude</code>, <code>district</code>, <code>elevation_m</code>, <code>nearest_town</code></td></tr>
+              <tr><td>Rating</td><td><code>rating</code>, <code>review_count</code></td></tr>
+              <tr><td>Setting</td><td><code>environment_primary</code>, <code>environment_tags</code>, <code>environment_confidence</code>, <code>environment_reason</code></td></tr>
+              <tr><td>Distances (km)</td><td><code>distance_to_coast_km</code>, <code>distance_to_waterbody_km</code>, <code>distance_to_lake_km</code>, <code>distance_to_beach_km</code>, <code>distance_to_forest_km</code>, <code>distance_to_town_km</code>, <code>distance_to_airport_km</code>, <code>distance_to_railway_km</code></td></tr>
+              <tr><td>Nearest named</td><td><code>nearest_waterbody</code>, <code>nearest_waterbody_type</code>, <code>nearest_lake</code>, <code>nearest_beach</code>, <code>nearest_forest</code>, <code>nearest_airport</code>, <code>nearest_railway_station</code></td></tr>
+              <tr><td>Amenities</td><td><code>amenities</code>, <code>swimming_pool</code>, <code>food_included</code>, <code>campfire</code>, <code>amenity_spa</code>, <code>amenity_restaurant</code>, <code>amenity_wifi</code>, <code>amenity_parking</code>, <code>amenity_ac</code>, <code>amenity_breakfast</code></td></tr>
+              <tr><td>Judgement</td><td><code>best_for</code>, <code>affordability</code>, <code>affordability_confidence</code>, <code>affordability_reason</code></td></tr>
+              <tr><td>Housekeeping</td><td><code>loaded_at</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Three fields are deliberately conservative and use <code>not-sure</code> rather than a guess: <code>swimming_pool</code>, <code>food_included</code> and <code>campfire</code>. <code>affordability</code> is a four-band estimate, not a price. No rupee value is stored anywhere.</p>
+
+        <h2 id="limits">08 / Limits and fair use</h2>
+        <ul>
+          <li><strong>Read only.</strong> The key can select, not write. Inserts, updates and deletes are refused by row-level security.</li>
+          <li><strong>Rate limited.</strong> The endpoint sits behind the project's anonymous quota. Keep calls bounded, page in 1,000s, and cache on your side.</li>
+          <li><strong>Attribution.</strong> The underlying listing data comes from public sources. Credit Kerala Field Notes and link back to the repository when you republish.</li>
+          <li><strong>No guarantees.</strong> The dataset refreshes as the enrichment and image jobs run, so row counts and image rows change. Treat this as an open, best-effort dataset, not a contract.</li>
+        </ul>
+        <div class="aside-note">
+          <p class="section-label">Need a private key?</p>
+          <p>This key is shared and public. If you need a personal key with its own quota, or a paid or higher-rate feed, open an issue on the <a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/issues" target="_blank" rel="noopener">repository</a>.</p>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <a class="footer-brand" href="index.html" aria-label="Kerala Field Notes, home">
+        <span>Kerala</span><em>Field Notes</em>
+      </a>
+      <p class="footer-note">An independent, evidence-led field guide to Kerala stays. Built from public data. No booking commissions.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="index.html#shortlist">Shortlist</a>
+        <a href="method.html">Method</a>
+        <a href="api.html">API</a>
+        <a href="method.html#credits">Image credits</a>
+        <a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>Kerala Field Notes / 2026</span>
+      <span>Built with public evidence, not paid placement.</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+</body>
+</html>
