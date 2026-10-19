@@ -2,7 +2,6 @@
 
 const DATA_URL = "data/resorts.json";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-const IMAGE_TTL = 1000 * 60 * 60 * 24 * 30;
 const IMAGE_LIMIT = 3;
 const BUDGET_LABELS = { low: "Low", medium: "Medium", high: "High", premium: "Premium" };
 const BUDGET_ORDER = { low: 0, medium: 1, high: 2, premium: 3 };
@@ -534,11 +533,6 @@ function enqueueImage(img) {
   const key = img.dataset.key;
   if (!key || img.dataset.queued) return;
   img.dataset.queued = "1";
-  const cached = readImageCache(key);
-  if (cached) {
-    paintImage(img, cached);
-    return;
-  }
   if (imageInflight.has(key)) {
     imageInflight.get(key).then((info) => {
       if (info) paintImage(img, info);
@@ -620,9 +614,7 @@ async function resolveImage(key, card) {
     license: best.license,
     license_url: best.license_url,
     alt: best.alt,
-    cached_at: Date.now(),
   };
-  writeImageCache(key, info);
   if (card) showCredit(card, info);
   return info;
 }
@@ -748,26 +740,6 @@ function markEmpty(img) {
   img.dataset.state = "error";
   const media = img.closest(".stay-media");
   if (media) media.classList.add("is-empty");
-}
-
-function readImageCache(key) {
-  try {
-    const raw = window.localStorage.getItem(`kfn-image:${key}`);
-    if (!raw) return null;
-    const info = JSON.parse(raw);
-    if (!info?.url || Date.now() - (info.cached_at || 0) > IMAGE_TTL) return null;
-    return info;
-  } catch {
-    return null;
-  }
-}
-
-function writeImageCache(key, info) {
-  try {
-    window.localStorage.setItem(`kfn-image:${key}`, JSON.stringify(info));
-  } catch {
-    /* private mode: the image still renders for this session */
-  }
 }
 
 function stripHtml(value) {
