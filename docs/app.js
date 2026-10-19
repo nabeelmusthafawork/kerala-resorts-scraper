@@ -2,6 +2,9 @@
 
 const DATA_URL = "data/resorts.json";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
+// Set this to the deployed Worker origin (for example
+// "https://kfn-images.<account>.workers.dev"). Empty means call Commons directly.
+const WORKER_URL = "";
 const IMAGE_LIMIT = 3;
 const BUDGET_LABELS = { low: "Low", medium: "Medium", high: "High", premium: "Premium" };
 const BUDGET_ORDER = { low: 0, medium: 1, high: 2, premium: 3 };
@@ -567,6 +570,36 @@ function drainImageQueue() {
 async function resolveImage(key, card) {
   const stay = DATA.stays.find((item) => item.image_key === key);
   if (!stay) return null;
+
+  const stored = await resolveFromWorker(key, stay);
+  if (stored) return stored;
+
+  return resolveFromCommons(key, stay);
+}
+
+// The Worker fetches live from Commons, commits the image into the repository,
+// and returns the stored URL. Until WORKER_URL is set, the site falls back to
+// calling Commons directly.
+async function resolveFromWorker(key, stay) {
+  if (!WORKER_URL) return null;
+  const params = new URLSearchParams({
+    key,
+    town: stay.town || "",
+    district: stay.district || "",
+    setting: stay.setting_label || stay.setting || "landscape",
+  });
+  try {
+    const res = await fetch(`${WORKER_URL}/img?${params.toString()}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const info = await res.json();
+    if (!info?.url) return null;
+    return info;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveFromCommons(key, stay) {
   const settingLabel = stay.setting_label || stay.setting || "landscape";
   const town = stay.town || stay.district || "Kerala";
   const queries = [
@@ -615,7 +648,6 @@ async function resolveImage(key, card) {
     license_url: best.license_url,
     alt: best.alt,
   };
-  if (card) showCredit(card, info);
   return info;
 }
 

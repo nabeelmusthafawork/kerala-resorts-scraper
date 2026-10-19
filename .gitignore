@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 output/logs/
 *.egg-info/
+node_modules/
+worker/.wrangler/
+.dev.vars

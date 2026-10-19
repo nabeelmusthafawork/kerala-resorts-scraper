@@ -1,0 +1,18 @@
+name = "kfn-images"
+main = "src/index.js"
+compatibility_date = "2026-10-19"
+
+# No KV or R2 required. The GitHub repository is the only store.
+# Optional speed-up (uncomment after `wrangler kv namespace create IMG_INDEX`):
+# [[kv_namespaces]]
+# binding = "IMG_INDEX"
+# id = "REPLACE_WITH_NAMESPACE_ID"
+
+[vars]
+GITHUB_REPO = "nabeelmusthafawork/kerala-resorts-scraper"
+GITHUB_BRANCH = "master"
+IMAGE_DIR = "docs/assets/locations"
+ALLOWED_ORIGINS = "https://nabeelmusthafawork.github.io,https://raw.githack.com,http://127.0.0.1:8765,http://localhost:8765"
+
+# Secret (set once, never committed):
+#   npx wrangler secret put GITHUB_TOKEN
