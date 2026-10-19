@@ -2,3 +2,6 @@ project_id = "lurkdmbjoapgimruktfs"
 
 [functions.img]
 verify_jwt = false
+
+[functions.ingest]
+verify_jwt = false
