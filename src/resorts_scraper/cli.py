@@ -1,4 +1,5 @@
 import argparse
+import csv
 import os
 import sys
 from collections import deque
@@ -6,9 +7,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from . import __version__
 from .backend import Blocked, make_backend, polite_sleep
+from .clean import dedupe_by_phone
 from .details import fetch_details
 from .export import coverage_report, export_csv
-from .models import Place
+from .models import CSV_FIELDS, Place
 from .planner import Planner, Query
 from .store import Store
 
@@ -243,6 +245,97 @@ def cmd_export(args):
     print(f"exported {n} places -> {args.out}")
 
 
+def cmd_rank(args):
+    """Rank places best-first, optionally narrowed to one area."""
+    from .rank import rank_places
+
+    store = Store(args.checkpoint)
+    places = store.all_places()
+    if getattr(args, "clean", False):
+        from .clean import filter_places
+
+        places, _ = filter_places(places, strict=True)
+
+    # pin and area are OR'd: a row qualifies if it carries the locality's PIN
+    # code OR names one of its hamlets. Either is proof of being in the area.
+    exact = [args.pin] if args.pin else []
+    loose = [a.lower() for a in args.area]
+    if exact or loose:
+        places = [
+            p
+            for p in places
+            if any(n in (p.address or "") for n in exact)
+            or any(n in (p.address or "").lower() for n in loose)
+        ]
+    if not places:
+        sys.exit("nothing matched those filters")
+
+    # one business listed twice keeps one phone number; the surviving row is
+    # the better-reviewed listing. See clean.dedupe_by_phone for why this
+    # needs both "same number" and "adjacent".
+    places, dupes = dedupe_by_phone(places, max_km=args.max_dup_km)
+    if dupes:
+        print(f"collapsed {dupes} duplicate listing(s) sharing a phone number")
+
+    ordered = [p for _, p in rank_places(places, prior=args.prior)]
+
+    # Sink whole categories to the end without disturbing the score order
+    # inside them: a cottage still ranks against other cottages, it just does
+    # so below everything else.
+    if args.bottom_title:
+        sunk = {t.strip().lower() for t in args.bottom_title}
+        is_sunk = lambda p: (p.title or "").strip().lower() in sunk  # noqa: E731
+        n_sunk = sum(1 for p in ordered if is_sunk(p))
+        if n_sunk:
+            print(f"moved {n_sunk} {'/'.join(sorted(sunk))} row(s) to the bottom")
+        ordered = [p for p in ordered if not is_sunk(p)] + [p for p in ordered if is_sunk(p)]
+
+    rows = [{"rank": i, **p.row()} for i, p in enumerate(ordered, 1)]
+    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
+    with open(args.out, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=["rank"] + CSV_FIELDS)
+        w.writeheader()
+        w.writerows(rows)
+    print(f"ranked {len(rows)} places -> {args.out}")
+
+    top = rows[: args.top] if args.top else rows
+    print(f"\n| # | name | rating | reviews | phone |")
+    print("|---|---|---|---|---|")
+    for r in top:
+        # a stray "|" in a business name would break the table
+        name = str(r["name"]).replace("|", "/")
+        print(
+            f"| {r['rank']} | {name[:38]} | {r['rating'] or '-'} | "
+            f"{r['review_count'] or '-'} | {r['phone'] or '-'} |"
+        )
+
+
+def cmd_enrich(args):
+    from .enrich import main as enrich_main
+
+    argv = []
+    if args.inp:
+        argv += ["--in", args.inp]
+    if args.out:
+        argv += ["--out", args.out]
+    if args.all:
+        argv.append("--all")
+    if args.pilot:
+        argv += ["--pilot", str(args.pilot)]
+    if args.limit:
+        argv += ["--limit", str(args.limit)]
+    for d in args.district or []:
+        argv += ["--district", d]
+    argv += ["--workers", str(args.workers)]
+    if args.no_crawl:
+        argv.append("--no-crawl")
+    if args.refresh_sites:
+        argv.append("--refresh-sites")
+    if args.details:
+        argv.append("--details")
+    return enrich_main(argv)
+
+
 def cmd_doctor(args):
     import platform
 
@@ -283,10 +376,97 @@ def cmd_doctor(args):
             print(f"live probe: FAILED ({type(e).__name__}: {e})")
 
 
-def main(argv=None):
-    ap = argparse.ArgumentParser(prog="resorts", description="Google Maps resort scraper (Scrapling)")
+def help_text() -> str:
+    """The grouped command list printed by `resorts help`."""
+    return f"""resorts {__version__} - Google Maps resort scraper
+
+usage: resorts <command> [options]
+
+Scrape
+  run        Scrape resorts for a district or locality, with phone and email
+             enrichment.
+  phones     Hunt phone numbers for places that still lack one.
+  emails     Harvest public emails from place websites.
+
+Data
+  export     Export a CSV from the checkpoints.
+  clean      Alias for 'export --clean': also drop out-of-state, non-lodging
+             and duplicate rows.
+  rank       Rank places best-first with the Bayesian weighted rating.
+  enrich     Add setting, amenities, access and affordability to a clean CSV.
+
+Operations
+  status     Show checkpoint status (what is scraped, what is left).
+  doctor     Environment and dependency check.
+  help       Show this list, or the full options for one command.
+
+Common options (most commands)
+  --config PATH        districts.yaml (default: {DEFAULT_CONFIG})
+  --checkpoint DIR     checkpoint directory (default: {DEFAULT_CHECKPOINT})
+  -o, --out PATH       output CSV path (default: {DEFAULT_OUT})
+  --mode MODE          auto | http | scrapling | urllib | browser (default: auto)
+
+Examples
+  resorts doctor
+      Check the environment and dependencies before a long run.
+  resorts run --district Wayanad --workers 3
+      Scrape every planned Wayanad query.
+  resorts run --district Idukki --locality Munnar
+      Scrape one locality only.
+  resorts phones --district Idukki --workers 8 --shard 1/3
+      Fill missing phone numbers, split across three processes.
+  resorts emails --district Wayanad --email-workers 12
+      Harvest public emails from place websites.
+  resorts status
+      How far the checkpoints have got.
+  resorts clean -o output/kerala_resorts.csv
+      Export a clean CSV from the checkpoints.
+  resorts rank --top 25 --prior 50
+      Print the best 25 places by weighted rating.
+  resorts enrich --in output/kerala_resorts.csv --out output/kerala_resorts_enriched.csv --all
+      Enrich the full clean CSV with the 48 fields.
+  resorts help rank
+      Full option list for one command.
+
+Notes
+  * Scraping is polite by default: delays between searches, capped retries.
+  * Checkpoints make every run resumable; 'status' shows what is left.
+  * Every command also accepts -h/--help for its own options.
+"""
+
+
+def cmd_help(args) -> int | None:
+    parsers = getattr(args, "parsers", {}) or {}
+    topic = getattr(args, "topic", None)
+    if not topic:
+        print(help_text().rstrip())
+        return 0
+    if topic == "help":
+        print(parsers["help"].format_help().rstrip() if "help" in parsers else "resorts help [command]")
+        return 0
+    if topic not in parsers:
+        print(f"unknown command: {topic}", file=sys.stderr)
+        print("run 'resorts help' for the command list", file=sys.stderr)
+        return 2
+    print(parsers[topic].format_help().rstrip())
+    return 0
+
+
+def build_parser():
+    ap = argparse.ArgumentParser(
+        prog="resorts",
+        description="Google Maps resort scraper (Scrapling)",
+        epilog="Run 'resorts help' for the grouped command list, "
+        "or 'resorts help <command>' for one command.",
+    )
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd", required=True)
+    parsers: dict[str, argparse.ArgumentParser] = {}
+
+    def add(name: str, **kwargs) -> argparse.ArgumentParser:
+        parser = sub.add_parser(name, **kwargs)
+        parsers[name] = parser
+        return parser
 
     def common(p):
         p.add_argument("--config", help="path to districts.yaml")
@@ -296,7 +476,7 @@ def main(argv=None):
             "--mode", choices=["auto", "http", "scrapling", "urllib", "browser"], default="auto"
         )
 
-    p_run = sub.add_parser("run", help="scrape resorts for a district/locality")
+    p_run = add("run", help="scrape resorts for a district/locality")
     common(p_run)
     p_run.add_argument("--district", help="e.g. Kozhikode or Wayanad")
     p_run.add_argument("--locality", help="single locality, e.g. Kalpetta")
@@ -312,14 +492,14 @@ def main(argv=None):
     p_run.add_argument("--email-delay", type=float, default=0.0, help="delay between requests per site")
     p_run.set_defaults(func=cmd_run)
 
-    p_em = sub.add_parser("emails", help="harvest public emails from place websites")
+    p_em = add("emails", help="harvest public emails from place websites")
     common(p_em)
     p_em.add_argument("--email-workers", type=int, default=12, help="concurrent site crawls")
     p_em.add_argument("--email-delay", type=float, default=0.0, help="delay between requests per site")
     p_em.add_argument("--shard", default="", help="i/n to split work across processes")
     p_em.set_defaults(func=cmd_emails_cmd)
 
-    p_ph = sub.add_parser("phones", help="hunt phone numbers for places that lack one")
+    p_ph = add("phones", help="hunt phone numbers for places that lack one")
     common(p_ph)
     p_ph.add_argument("--workers", type=int, default=8, help="concurrent detail lookups")
     p_ph.add_argument("--delay", type=float, default=0.4, help="base delay between requests (s)")
@@ -328,27 +508,71 @@ def main(argv=None):
     p_ph.add_argument("--clean", action="store_true", help="write a filtered CSV when done")
     p_ph.set_defaults(func=cmd_phones)
 
-    p_st = sub.add_parser("status", help="show checkpoint status")
+    p_st = add("status", help="show checkpoint status")
     common(p_st)
     p_st.set_defaults(func=cmd_status)
 
-    p_ex = sub.add_parser("export", help="export CSV from checkpoints")
+    p_ex = add("export", help="export CSV from checkpoints")
     common(p_ex)
     p_ex.add_argument("--clean", action="store_true", help="drop out-of-state, non-lodging and duplicate rows")
     p_ex.set_defaults(func=export_report)
 
-    p_cl = sub.add_parser("clean", help="alias for 'export --clean'")
+    p_cl = add("clean", help="alias for 'export --clean'")
     common(p_cl)
     p_cl.add_argument("--clean", action="store_true", default=True)
     p_cl.set_defaults(func=export_report)
 
-    p_dr = sub.add_parser("doctor", help="environment check")
+    p_rk = add("rank", help="rank places best-first (Bayesian weighted rating)")
+    common(p_rk)
+    p_rk.add_argument("--pin", default="", help="keep addresses containing this PIN code, e.g. 673604")
+    p_rk.add_argument("--area", nargs="+", default=[],
+                      help="keep addresses containing any of these names, e.g. Kakkadampoyil Nayadampoyil")
+    p_rk.add_argument("--prior", type=float, default=50.0,
+                      help="reviews a rating needs before it counts fully (default 50)")
+    p_rk.add_argument("--max-dup-km", type=float, default=0.2,
+                      help="collapse same-phone listings closer than this (default 0.2)")
+    p_rk.add_argument("--bottom-title", nargs="+", default=[],
+                      metavar="TITLE",
+                      help="sink these Google categories to the bottom, e.g. --bottom-title Cottage")
+    p_rk.add_argument("--top", type=int, default=25, help="rows to print, 0 for all")
+    p_rk.add_argument("--clean", action="store_true", default=True,
+                      help="apply the strict Kerala lodging+phone filter first")
+    p_rk.set_defaults(func=cmd_rank)
+
+    p_en = add("enrich", help="add setting, amenities, access and affordability to a clean CSV")
+    p_en.add_argument("--in", dest="inp", default="output/kerala_resorts.csv", help="input clean CSV")
+    p_en.add_argument("--out", default="output/kerala_resorts_enriched.csv", help="output enriched CSV")
+    p_en.add_argument("--all", action="store_true", help="process every row")
+    p_en.add_argument("--pilot", type=int, default=0, help="process a stratified pilot of N rows")
+    p_en.add_argument("--limit", type=int, default=0, help="process the first N rows after filtering")
+    p_en.add_argument("--district", action="append", default=[], help="restrict to district (repeatable)")
+    p_en.add_argument("--workers", type=int, default=8, help="concurrent website crawls")
+    p_en.add_argument("--no-crawl", action="store_true", help="use cached site facts only")
+    p_en.add_argument("--refresh-sites", action="store_true", help="ignore cached site facts")
+    p_en.add_argument(
+        "--details",
+        action="store_true",
+        help="fetch Google Maps amenity attributes for rows without a usable own website",
+    )
+    p_en.set_defaults(func=cmd_enrich)
+
+    p_dr = add("doctor", help="environment check")
     p_dr.add_argument("--probe", action="store_true", help="run a live search probe")
     p_dr.set_defaults(func=cmd_doctor)
 
+    p_help = add("help", help="show the grouped command list, or details for one command")
+    p_help.add_argument("topic", nargs="?", help="command name, for example 'rank'")
+    p_help.set_defaults(func=cmd_help)
+
+    ap.set_defaults(parsers=parsers)
+    return ap, parsers
+
+
+def main(argv=None):
+    ap, _ = build_parser()
     args = ap.parse_args(argv)
-    args.func(args)
+    return args.func(args)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

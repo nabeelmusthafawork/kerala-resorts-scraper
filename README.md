@@ -74,6 +74,17 @@ resorts status
 resorts export --clean -o output/kerala_resorts.csv
 ```
 
+### `help`
+
+```bash
+resorts help            # grouped command list, common options, examples
+resorts help rank       # full options for one command
+```
+
+`resorts help` groups the commands into Scrape, Data and Operations, prints the
+default paths, and shows one example per command. Every command also accepts
+`-h`/`--help`, and `resorts help <command>` prints the same text.
+
 ### `--shard i/n`
 
 Splits the outstanding work across processes. The split is a pure function of
