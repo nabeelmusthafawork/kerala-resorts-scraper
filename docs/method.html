@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Method — Kerala Field Notes</title>
+  <meta name="description" content="How the Kerala Field Notes shortlist is built: 7,813 listings, a Bayesian rating with a 50-review prior, a 30-review floor, corrected geography, and explicit limits.">
+  <meta name="theme-color" content="#f3eee4">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Instrument+Sans:ital,wght@0,400..700;1,400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-inner">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" data-header>
+    <a class="brand" href="index.html" aria-label="Kerala Field Notes, home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 34 34" fill="none"><path d="M4 24.5c5.4-7.6 8.7-3.9 13.1-8.4C21.7 11.4 24.8 8 30 6.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 29c6.3-4.8 9.4-1.4 14.1-5.6 4.2-3.7 7.6-6.7 11.9-7.1" stroke="currentColor" stroke-width="1.4" opacity=".5"/><circle cx="17" cy="17" r="2.2" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-type"><span>Kerala</span><em>Field Notes</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html#shortlist">Shortlist</a>
+      <a href="index.html#terrain">Terrain</a>
+      <a href="method.html" aria-current="page">Method</a>
+      <a href="index.html#data">Data</a>
+    </nav>
+    <a class="header-cta" href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper" target="_blank" rel="noopener">Repository <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="main">
+    <header class="page-hero">
+      <p class="section-label">Method / field notes</p>
+      <h1>The method, <em>and the limits.</em></h1>
+      <p class="page-dek">A shortlist is only useful if you can see how it was made. This page records the source, the ranking, the geography correction, the image rules, and the places where the data stops.</p>
+    </header>
+
+    <div class="prose-wrap">
+      <article class="prose">
+        <p class="lede">The list is an editorial shortlist built from public evidence. It is not a booking ranking, a price index, or a claim that these are the only good places to stay in Kerala.</p>
+
+        <h2 id="field">01 / The field</h2>
+        <p>The source is a public scrape of <strong>7,813 Kerala listings</strong> across all 14 districts. Each row carries a name, property type, location, rating, review count, coordinates, and whatever amenity or description text the source exposed.</p>
+        <p>Of those rows, <strong>6,418 have a usable guest rating</strong>. The other 1,395 remain in the cleaned CSV but cannot enter a rating-led shortlist. Keeping them is deliberate: the dataset should show what was read, not only what survived.</p>
+        <p>No paid placements, affiliate links, or booking commissions decide the order. The repository contains the source CSV, the enriched CSV, the code, and the tests.</p>
+
+        <h2 id="ranking">02 / The ranking</h2>
+        <p>A raw average rewards a property with eight perfect reviews as much as one with thousands. The shortlist uses a Bayesian rating with a <strong>50-review prior</strong> at the field mean of <strong>4.34</strong>:</p>
+        <div class="formula" role="img" aria-label="Score equals fifty times four point three four, plus review count times rating, divided by fifty plus review count.">
+          score = (50 × 4.34 + n × rating) / (50 + n)
+        </div>
+        <p>Here <code>n</code> is the review count and <code>rating</code> is the source rating. A property with a small review base is pulled toward the field mean; a property with a large review base keeps more of its own record. The prior is not a penalty. It is a statement about how much evidence we actually have.</p>
+        <p>Only properties with <strong>at least 30 reviews</strong> are eligible. The eligible rows are sorted by score, then by review count, then by name. The first <strong>100</strong> become the shortlist. The rank on each card is the rank in that sort, not a new rating.</p>
+        <div class="aside-note">
+          <p class="section-label">Why not a hidden weighted score?</p>
+          <p>A weighted composite would let the author decide that a pool is worth more than a view. That choice is not in the source. The published score uses only the rating and the review count, and every card shows both.</p>
+        </div>
+
+        <h2 id="enrichment">03 / The 48 fields</h2>
+        <p>The enriched dataset adds setting, amenity, access, and affordability fields to the source row. The exact column list and value domains are in the <a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/blob/master/output/ENRICHMENT_FIELDS.md" target="_blank" rel="noopener">field dictionary</a>.</p>
+        <p>Three fields are deliberately conservative:</p>
+        <ul>
+          <li><strong>Pool</strong> is <code>yes</code>, <code>no</code>, or <code>not-sure</code>. A negative phrase such as “no pool” is treated as a no. Silence is not a no.</li>
+          <li><strong>Food included</strong> is <code>included</code>, <code>excluded</code>, or <code>not-sure</code>. It records whether the source copy connects meals to the stay price, not whether a restaurant exists.</li>
+          <li><strong>Bonfire</strong> is <code>yes</code>, <code>no</code>, or <code>not-sure</code>. A bonfire area is not the same as a guaranteed bonfire on the night you arrive.</li>
+        </ul>
+        <p><strong>Affordability</strong> is a four-band estimate: <code>low</code>, <code>medium</code>, <code>high</code>, or <code>premium</code>. It is not a price and no rupee value is stored. The band combines the listing’s relative rate position with quality signals such as rating, review count, property wording, and amenities. A cheap-looking row with luxury evidence can move up; an expensive position with thin evidence can move down.</p>
+        <p>This is the main caveat on the site: <strong>budget bands are estimates</strong>. They are useful for filtering, not for quoting a room rate.</p>
+
+        <h2 id="geography">04 / The geography</h2>
+        <p>The source district is query-based and is wrong at some borders. Every shortlisted coordinate was reverse-geocoded against OpenStreetMap Nominatim, and the OSM district replaced the source district when the two disagreed.</p>
+        <p>The locality label uses the source’s <code>nearest_town</code> when present. That keeps the familiar name a traveller would recognise: Kumily rather than the taluk, Varkala rather than the municipality. Elevation comes from the enrichment pass and is plotted in metres.</p>
+        <p>The terrain field on the home page is a scatter plot, not a map. Longitude runs left to right; elevation runs bottom to top. Dots are jittered slightly so overlapping stays remain selectable. A dot near the coast is a low-elevation stay in the west; a dot high on the right is a Western Ghats stay.</p>
+
+        <h2 id="images">05 / Location images</h2>
+        <p>Location photography is resolved <strong>when a card enters the viewport</strong>, not pre-stored for all 100 stays. The browser asks the Wikimedia Commons API for geotagged images within roughly 12 km of the stay, scores the candidates, and requests a 1,000-pixel thumbnail.</p>
+        <p>The scorer rewards setting words (beach, backwater, tea, forest, mist, valley), the locality name, and the district. It rejects maps, diagrams, logos, portraits, interiors, and obvious off-topic results. A candidate must clear a minimum score; if none do, the card keeps a patterned placeholder rather than showing a wrong photograph.</p>
+        <p>Attribution is shown on the image and links to the Commons file page. The resolved URL and attribution are cached in the browser for 30 days, so a repeat search is instant. The architecture is ready for a serverless cache to commit the same payload into <code>docs/assets/locations/</code>; the static site itself does not need that cache to render.</p>
+        <p>Images are illustrative of the <em>place</em>, not necessarily of the property. A photograph of a beach near Varkala is not a photograph of a specific resort. Check the property’s own site before booking.</p>
+        <p>If an image is wrong, the credit link goes to the source file. The repository issue tracker is the right place to report a bad match.</p>
+
+        <h2 id="limits">06 / What this cannot tell you</h2>
+        <ul>
+          <li><strong>Ratings are not audited.</strong> They are the source’s guest ratings. We do not verify that every review is genuine.</li>
+          <li><strong>The source has a selection bias.</strong> It is one scrape of one set of listings, not a census of every stay in Kerala.</li>
+          <li><strong>No live availability or price.</strong> The site does not query booking engines and does not store room rates.</li>
+          <li><strong>Amenities can be incomplete.</strong> “Not sure” means the inspected text did not settle the question. It does not mean the feature is absent.</li>
+          <li><strong>Images are place-level.</strong> They can be beautiful and still be the wrong side of the district.</li>
+          <li><strong>Rank is not a recommendation to book.</strong> It is a reading of the evidence, and the evidence has gaps.</li>
+        </ul>
+
+        <h2 id="credits">07 / Data and credits</h2>
+        <p>The full pipeline is public. The cleaned source CSV is left untouched; the enriched CSV is a separate 48-field product. The enrichment report records counts, assumptions, and changes.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Artifact</th><th>What it contains</th><th>Rows</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/blob/master/output/kerala_resorts.csv" target="_blank" rel="noopener">Source CSV</a></td><td>Clean scrape, original columns</td><td>7,813</td></tr>
+              <tr><td><a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/blob/master/output/kerala_resorts_enriched.csv" target="_blank" rel="noopener">Enriched CSV</a></td><td>Source plus setting, amenities, access, affordability</td><td>7,813 × 48</td></tr>
+              <tr><td><a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/blob/master/output/ENRICHMENT_REPORT.md" target="_blank" rel="noopener">Enrichment report</a></td><td>Counts, assumptions, quality notes</td><td>—</td></tr>
+              <tr><td><a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper/blob/master/output/ENRICHMENT_FIELDS.md" target="_blank" rel="noopener">Field dictionary</a></td><td>Every column and allowed value</td><td>48 fields</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Hero photograph: Vembanad Lake backwaters by Vyacheslav Argenberg, <a href="https://commons.wikimedia.org/wiki/File:Kerala_backwaters,_Vembanad_Lake,_Houseboats,_India.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>, CC BY 4.0.</p>
+        <p>Location photographs are fetched live from Wikimedia Commons. Each card carries its own author and licence credit, linked to the file page. The site does not relicense those images; it attributes them and sends you to the source.</p>
+        <p>Basemap geography uses OpenStreetMap Nominatim for reverse geocoding. The terrain field is drawn from the enriched coordinates and elevation values, not from a tile service.</p>
+
+        <p style="margin-top:2.5rem"><a class="button button--ink" href="index.html#shortlist">Back to the shortlist</a></p>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <a class="footer-brand" href="index.html" aria-label="Kerala Field Notes, home">
+        <span>Kerala</span><em>Field Notes</em>
+      </a>
+      <p class="footer-note">An independent, evidence-led field guide to Kerala stays. Built from public data. No booking commissions.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="index.html#shortlist">Shortlist</a>
+        <a href="method.html">Method</a>
+        <a href="method.html#credits">Image credits</a>
+        <a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>Kerala Field Notes / 2026</span>
+      <span>Built with public evidence, not paid placement.</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+</body>
+</html>

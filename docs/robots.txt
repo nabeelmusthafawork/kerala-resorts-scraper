@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nabeelmusthafawork.github.io/kerala-resorts-scraper/sitemap.xml

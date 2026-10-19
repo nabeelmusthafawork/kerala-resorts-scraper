@@ -1,0 +1,502 @@
+{
+  "9.62646,77.17413": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "10.07950,76.95167": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "9.60223,77.16469": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "8.98798,76.61115": {
+    "district": "Kollam",
+    "town": "Kollam",
+    "display": "Kollam, Kerala, 691001, India"
+  },
+  "10.02807,77.04112": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "11.70450,76.01812": {
+    "district": "Wayanad",
+    "town": "Mananthavady",
+    "display": "Mananthavady, Wayanad, Kerala, India"
+  },
+  "9.61808,77.12127": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "11.57643,76.02634": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "11.79698,76.10483": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "10.82580,76.68492": {
+    "district": "Palakkad",
+    "town": "Palakkad",
+    "display": "Palakkad, Kerala, 678001, India"
+  },
+  "11.50128,76.15564": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "9.63044,76.49277": {
+    "district": "Kottayam",
+    "town": "Kottayam",
+    "display": "Kottayam, Kerala, 686001, India"
+  },
+  "10.01305,77.04929": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "11.66810,76.26627": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "11.56757,76.11381": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "11.12163,76.11943": {
+    "district": "Malappuram",
+    "town": "Ernad",
+    "display": "Ernad, Malappuram, Kerala, India"
+  },
+  "8.74038,76.70335": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "9.95740,77.10212": {
+    "district": "Idukki",
+    "town": "Udumbanchola",
+    "display": "Udumbanchola, Idukki, Kerala, India"
+  },
+  "9.34841,76.98443": {
+    "district": "Pathanamthitta",
+    "town": "Konni",
+    "display": "Konni, Pathanamthitta, Kerala, India"
+  },
+  "11.59958,76.21325": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "10.01000,77.03167": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "10.78016,76.34573": {
+    "district": "Palakkad",
+    "town": "Ottappalam",
+    "display": "Ottappalam, Palakkad, Kerala, India"
+  },
+  "9.87884,76.74431": {
+    "district": "Idukki",
+    "town": "Thodupuzha",
+    "display": "Thodupuzha, Idukki, Kerala, India"
+  },
+  "11.66244,76.25444": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "9.93240,76.26729": {
+    "district": "Ernakulam",
+    "town": "Kochi",
+    "display": "Kochi, Ernakulam, Kerala, 682001, India"
+  },
+  "10.24105,76.24569": {
+    "district": "Thrissur",
+    "town": "Chalakkudy",
+    "display": "Chalakkudy, Thrissur, Kerala, India"
+  },
+  "9.98519,77.19706": {
+    "district": "Idukki",
+    "town": "Udumbanchola",
+    "display": "Udumbanchola, Idukki, Kerala, India"
+  },
+  "10.00756,77.04281": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "10.19985,76.54898": {
+    "district": "Ernakulam",
+    "town": "Aluva",
+    "display": "Aluva, Ernakulam, Kerala, India"
+  },
+  "9.60093,77.13153": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "11.53891,76.10803": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "10.02358,76.26538": {
+    "district": "Ernakulam",
+    "town": "Ernakulam",
+    "display": "Ernakulam, Kanayannur, Ernakulam, Kerala, 682035, India"
+  },
+  "9.98757,76.29564": {
+    "district": "Ernakulam",
+    "town": "Ernakulam",
+    "display": "Ernakulam, Kanayannur, Ernakulam, Kerala, 682035, India"
+  },
+  "8.75356,76.69203": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "11.12311,76.12017": {
+    "district": "Malappuram",
+    "town": "Ernad",
+    "display": "Ernad, Malappuram, Kerala, India"
+  },
+  "10.22683,77.20357": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "11.64709,75.97871": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "9.82109,77.03423": {
+    "district": "Idukki",
+    "town": "Idukki",
+    "display": "Idukki, Kerala, India"
+  },
+  "10.89206,76.53983": {
+    "district": "Palakkad",
+    "town": "Mannarkad",
+    "display": "Mannarkad, Palakkad, Kerala, India"
+  },
+  "10.54946,76.68691": {
+    "district": "Palakkad",
+    "town": "Chittur",
+    "display": "Chittur, Palakkad, Kerala, India"
+  },
+  "11.58886,76.25005": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "9.83231,77.19644": {
+    "district": "Idukki",
+    "town": "Udumbanchola",
+    "display": "Udumbanchola, Idukki, Kerala, India"
+  },
+  "8.74246,76.70483": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "10.02484,76.26187": {
+    "district": "Ernakulam",
+    "town": "Ernakulam",
+    "display": "Ernakulam, Kanayannur, Ernakulam, Kerala, 682035, India"
+  },
+  "9.92247,76.94339": {
+    "district": "Idukki",
+    "town": "Idukki",
+    "display": "Idukki, Kerala, India"
+  },
+  "11.73566,76.04873": {
+    "district": "Wayanad",
+    "town": "Mananthavady",
+    "display": "Mananthavady, Wayanad, Kerala, India"
+  },
+  "10.06094,76.36289": {
+    "district": "Ernakulam",
+    "town": "Aluva",
+    "display": "Aluva, Ernakulam, Kerala, India"
+  },
+  "9.57282,77.02064": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "9.66515,76.94935": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "12.78621,75.00346": {
+    "district": "Kasaragod",
+    "town": "Manjeswaram",
+    "display": "Manjeswaram, Kasaragod, Kerala, India"
+  },
+  "11.58258,76.22334": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "9.50181,76.33894": {
+    "district": "Alappuzha",
+    "town": "Alappuzha",
+    "display": "Alappuzha, Ambalappuzha, Alappuzha, Kerala, 688001, India"
+  },
+  "11.58548,76.06310": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "10.28901,76.55625": {
+    "district": "Thrissur",
+    "town": "Chalakkudy",
+    "display": "Chalakkudy, Thrissur, Kerala, India"
+  },
+  "11.57561,76.06726": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "11.53988,76.15399": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "11.93778,76.05756": {
+    "district": "Wayanad",
+    "town": "Mananthavady",
+    "display": "Mananthavady, Wayanad, Kerala, India"
+  },
+  "9.48194,76.32159": {
+    "district": "Alappuzha",
+    "town": "Alappuzha",
+    "display": "Alappuzha, Ambalappuzha, Alappuzha, Kerala, 688001, India"
+  },
+  "10.09628,76.28254": {
+    "district": "Ernakulam",
+    "town": "Paravur",
+    "display": "Paravur, Ernakulam, Kerala, India"
+  },
+  "9.67531,77.19485": {
+    "district": "Idukki",
+    "town": "Udumbanchola",
+    "display": "Udumbanchola, Idukki, Kerala, India"
+  },
+  "9.55986,76.62280": {
+    "district": "Kottayam",
+    "town": "Kottayam",
+    "display": "Kottayam, Kerala, 686001, India"
+  },
+  "9.54681,76.97369": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "11.52659,76.17004": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "11.54738,76.06271": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "10.10912,76.36453": {
+    "district": "Ernakulam",
+    "town": "Aluva",
+    "display": "Aluva, Ernakulam, Kerala, India"
+  },
+  "9.49158,76.34347": {
+    "district": "Alappuzha",
+    "town": "Alappuzha",
+    "display": "Alappuzha, Ambalappuzha, Alappuzha, Kerala, 688001, India"
+  },
+  "9.88941,76.31847": {
+    "district": "Ernakulam",
+    "town": "Ernakulam",
+    "display": "Ernakulam, Kanayannur, Ernakulam, Kerala, 682035, India"
+  },
+  "10.23869,77.15441": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "8.99711,76.61841": {
+    "district": "Kollam",
+    "town": "Kollam",
+    "display": "Kollam, Kerala, 691001, India"
+  },
+  "10.04251,76.96322": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "8.73619,76.70581": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "10.59524,76.70839": {
+    "district": "Palakkad",
+    "town": "Chittur",
+    "display": "Chittur, Palakkad, Kerala, India"
+  },
+  "9.69600,76.93383": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "10.04935,77.05676": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "11.51204,76.15353": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "10.20057,77.24891": {
+    "district": "Idukki",
+    "town": "Devikulam",
+    "display": "Devikulam, Idukki, Kerala, India"
+  },
+  "12.39598,75.03471": {
+    "district": "Kasaragod",
+    "town": "Hosdurg",
+    "display": "Hosdurg, Kasaragod, Kerala, India"
+  },
+  "10.18445,76.56521": {
+    "district": "Ernakulam",
+    "town": "Kunnathunad",
+    "display": "Kunnathunad, Ernakulam, Kerala, India"
+  },
+  "11.55949,75.60476": {
+    "district": "Kozhikode",
+    "town": "Koyilandi",
+    "display": "Koyilandi, Kozhikode, Kerala, India"
+  },
+  "8.43873,76.96328": {
+    "district": "Thiruvananthapuram",
+    "town": "Thiruvananthapuram",
+    "display": "Thiruvananthapuram, Kerala, 695001, India"
+  },
+  "10.04594,76.31866": {
+    "district": "Ernakulam",
+    "town": "Ernakulam",
+    "display": "Ernakulam, Kanayannur, Ernakulam, Kerala, 682035, India"
+  },
+  "8.74293,76.70391": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "11.92419,75.31420": {
+    "district": "Kannur",
+    "town": "Kannur",
+    "display": "Kannur, Kerala, 670004, India"
+  },
+  "11.59791,76.09878": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "10.07139,76.24200": {
+    "district": "Ernakulam",
+    "town": "Paravur",
+    "display": "Paravur, Ernakulam, Kerala, India"
+  },
+  "8.76321,76.68546": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "9.60302,77.17095": {
+    "district": "Idukki",
+    "town": "Peerumade",
+    "display": "Peerumade, Idukki, Kerala, India"
+  },
+  "8.99840,76.62409": {
+    "district": "Kollam",
+    "town": "Kollam",
+    "display": "Kollam, Kerala, 691001, India"
+  },
+  "12.41159,75.03471": {
+    "district": "Kasaragod",
+    "town": "Hosdurg",
+    "display": "Hosdurg, Kasaragod, Kerala, India"
+  },
+  "11.64540,76.19455": {
+    "district": "Wayanad",
+    "town": "Sulthanbathery",
+    "display": "Sulthanbathery, Wayanad, Kerala, India"
+  },
+  "9.74756,76.28818": {
+    "district": "Alappuzha",
+    "town": "Cherthala",
+    "display": "Cherthala, Alappuzha, Kerala, India"
+  },
+  "8.74272,76.71097": {
+    "district": "Thiruvananthapuram",
+    "town": "Varkala",
+    "display": "Varkala, Thiruvananthapuram, Kerala, India"
+  },
+  "11.65209,76.02337": {
+    "district": "Wayanad",
+    "town": "Vythiri",
+    "display": "Vythiri, Wayanad, Kerala, India"
+  },
+  "9.47037,76.34383": {
+    "district": "Alappuzha",
+    "town": "Alappuzha",
+    "display": "Alappuzha, Ambalappuzha, Alappuzha, Kerala, 688001, India"
+  },
+  "10.13294,76.19119": {
+    "district": "Ernakulam",
+    "town": "Kochi",
+    "display": "Kochi, Ernakulam, Kerala, India"
+  },
+  "9.53809,76.30911": {
+    "district": "Alappuzha",
+    "town": "Alappuzha",
+    "display": "Alappuzha, Ambalappuzha, Alappuzha, Kerala, 688001, India"
+  },
+  "10.08456,76.38881": {
+    "district": "Ernakulam",
+    "town": "Aluva",
+    "display": "Aluva, Ernakulam, Kerala, India"
+  },
+  "10.09622,76.34422": {
+    "district": "Ernakulam",
+    "town": "Aluva",
+    "display": "Aluva, Ernakulam, Kerala, India"
+  },
+  "9.49822,76.34965": {
+    "district": "Alappuzha",
+    "town": "Alappuzha",
+    "display": "Alappuzha, Ambalappuzha, Alappuzha, Kerala, 688001, India"
+  },
+  "9.81161,77.24380": {
+    "district": "Idukki",
+    "town": "Udumbanchola",
+    "display": "Udumbanchola, Idukki, Kerala, India"
+  }
+}
