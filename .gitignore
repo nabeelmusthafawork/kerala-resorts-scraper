@@ -6,3 +6,4 @@ output/logs/
 node_modules/
 worker/.wrangler/
 .dev.vars
+supabase/.temp/
