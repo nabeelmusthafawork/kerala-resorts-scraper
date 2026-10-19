@@ -1,0 +1,4 @@
+project_id = "lurkdmbjoapgimruktfs"
+
+[functions.img]
+verify_jwt = false

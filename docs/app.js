@@ -2,9 +2,12 @@
 
 const DATA_URL = "data/resorts.json";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-// Set this to the deployed Worker origin (for example
-// "https://kfn-images.<account>.workers.dev"). Empty means call Commons directly.
-const WORKER_URL = "";
+// Supabase Edge Function that fetches an image live, stores it in the
+// `locations` bucket, records it in `location_images`, and returns the URL.
+const SUPABASE_URL = "https://lurkdmbjoapgimruktfs.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A";
+const IMAGE_API = `${SUPABASE_URL}/functions/v1/img`;
+// Empty IMAGE_API falls back to calling Commons directly.
 const IMAGE_LIMIT = 3;
 const BUDGET_LABELS = { low: "Low", medium: "Medium", high: "High", premium: "Premium" };
 const BUDGET_ORDER = { low: 0, medium: 1, high: 2, premium: 3 };
@@ -571,17 +574,16 @@ async function resolveImage(key, card) {
   const stay = DATA.stays.find((item) => item.image_key === key);
   if (!stay) return null;
 
-  const stored = await resolveFromWorker(key, stay);
+  const stored = await resolveFromImageApi(key, stay);
   if (stored) return stored;
 
   return resolveFromCommons(key, stay);
 }
 
-// The Worker fetches live from Commons, commits the image into the repository,
-// and returns the stored URL. Until WORKER_URL is set, the site falls back to
-// calling Commons directly.
-async function resolveFromWorker(key, stay) {
-  if (!WORKER_URL) return null;
+// The Supabase Edge Function fetches live from Commons, stores the image, and
+// returns its public URL. If IMAGE_API is unset, the site calls Commons directly.
+async function resolveFromImageApi(key, stay) {
+  if (!IMAGE_API) return null;
   const params = new URLSearchParams({
     key,
     town: stay.town || "",
@@ -589,7 +591,10 @@ async function resolveFromWorker(key, stay) {
     setting: stay.setting_label || stay.setting || "landscape",
   });
   try {
-    const res = await fetch(`${WORKER_URL}/img?${params.toString()}`, { cache: "no-store" });
+    const res = await fetch(`${IMAGE_API}?${params.toString()}`, {
+      cache: "no-store",
+      headers: { apikey: SUPABASE_KEY },
+    });
     if (!res.ok) return null;
     const info = await res.json();
     if (!info?.url) return null;
