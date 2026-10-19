@@ -1,5 +1,10 @@
 # resorts-scraper
 
+> **Live site:** [Kerala Field Notes](https://nabeelmusthafawork.github.io/kerala-resorts-scraper/) —
+> an evidence-led shortlist of 100 stays, ranked by a Bayesian rating with a
+> 50-review prior and plotted by longitude and elevation. Source and method are
+> public.
+
 Google Maps scraper for **Kerala resorts and homestays**, built on
 [Scrapling](https://github.com/D4Vinci/Scrapling) with a plain-HTTP fallback.
 Covers all 14 districts, enriches each place with phone/website/coordinates,
