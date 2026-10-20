@@ -6,19 +6,19 @@
  *   1. Resets rows stuck in `running` for more than 10 minutes.
  *   2. Claims up to `limit` places from ingest_progress through the
  *      claim_listings RPC (row locks, so parallel runs never overlap).
- *   3. For each place: search Commons, score candidates, and store up to
- *      `images` new photos in the public `locations` bucket under
- *      listings/<hash>/. Duplicates are skipped by (place_id, commons_id).
+ *   3. For each place: search Commons, score candidates, and record up to
+ *      `images` new photos as URLs in `listing_media` (public_url = the
+ *      Commons thumbnail). Nothing is downloaded or uploaded. Duplicates are
+ *      skipped by (place_id, commons_id).
  *   4. Marks the place done, empty, or error.
  *
  * Intended caller: pg_cron, once per minute. Manual calls work too.
- * No external imports. Talks to PostgREST and Storage over fetch.
+ * No external imports. Talks to PostgREST over fetch.
  */
 
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 const USER_AGENT =
   "KeralaFieldNotes/1.0 (https://github.com/nabeelmusthafawork/kerala-resorts-scraper)";
-const BUCKET = "locations";
 const EXT_BY_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -64,6 +64,7 @@ Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const limit = clampInt(url.searchParams.get("limit"), 5, 1, 25);
   const perPlace = clampInt(url.searchParams.get("images"), 2, 1, 6);
+  const mode = url.searchParams.get("mode") === "topup" ? "topup" : "forward";
 
   const base = Deno.env.get("SUPABASE_URL");
   const service =
@@ -76,8 +77,14 @@ Deno.serve(async (req: Request) => {
   try {
     await resetStale(base, service);
 
-    const claimed = await rpc(base, service, "claim_listings", { n: limit });
-    const places = Array.isArray(claimed) ? claimed : [];
+    const claimed = await rpc(base, service, mode === "topup" ? "claim_topup" : "claim_listings", { n: limit });
+    const places = Array.isArray(claimed) ? claimed.slice() : [];
+    // When the forward queue is empty, spend the remaining request on
+    // topping up listings that still have fewer than six images.
+    if (mode === "forward" && !places.length) {
+      const extra = await rpc(base, service, "claim_topup", { n: limit });
+      if (Array.isArray(extra)) places.push(...extra);
+    }
     if (!places.length) return json({ ok: true, processed: 0, images: 0, stats: await stats(base, service) }, 200, cors);
 
     let stored = 0;
@@ -96,7 +103,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return json(
-      { ok: true, processed: places.length, images: stored, ms: Date.now() - started, results, stats: await stats(base, service) },
+      { ok: true, mode, processed: places.length, images: stored, ms: Date.now() - started, results, stats: await stats(base, service) },
       200,
       noStore(cors),
     );
@@ -185,6 +192,11 @@ async function harvest(base: string, service: string, place: Place, want: number
     `${town} Kerala ${envTerm}`,
     district ? `${district} Kerala ${envTerm}` : `Kerala ${envTerm} landscape`,
     `${town} Kerala landscape`,
+    `${town} Kerala`,
+    district ? `${district} Kerala landscape` : `Kerala ${envTerm} scenery`,
+    `Kerala ${envTerm} scenery`,
+    `${town} Kerala ${envTerm} view`,
+    district ? `${district} Kerala tourism` : "Kerala landscape",
   ];
 
   const seen = new Map<string, Candidate>();
@@ -207,27 +219,23 @@ async function harvest(base: string, service: string, place: Place, want: number
     }
   }
 
-  const ranked = [...seen.values()].sort((a, b) => b.score - a.score).slice(0, want);
+  const remaining = Math.max(0, 6 - existing.size);
+  const ranked = [...seen.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.min(want, remaining));
 
   let added = 0;
   for (const candidate of ranked) {
-    const asset = await downloadBest(candidate.thumburl);
-    if (!asset) continue;
-    const ext = EXT_BY_MIME[asset.mime];
+    const ext = EXT_BY_MIME[candidate.mime];
     if (!ext) continue;
 
-    const path = `listings/${shortHash(place.place_id)}/${candidate.pageid}.${ext}`;
-    const uploaded = await upload(base, service, path, asset.bytes, asset.mime);
-    if (!uploaded) continue;
-
-    const publicUrl = `${base}/storage/v1/object/public/${BUCKET}/${path}`;
-    await insertMedia(base, service, {
+    const ok = await insertMedia(base, service, {
       place_id: place.place_id,
       listing_name: place.listing_name ?? null,
       commons_id: candidate.pageid,
       commons_title: candidate.title,
-      storage_path: path,
-      public_url: publicUrl,
+      storage_path: null,
+      public_url: candidate.thumburl,
       ext,
       width: candidate.width,
       height: candidate.height,
@@ -238,8 +246,9 @@ async function harvest(base: string, service: string, place: Place, want: number
       alt: candidate.alt,
       query: candidate.query,
       score: candidate.score,
+      source: "commons",
     });
-    added += 1;
+    if (ok) added += 1;
   }
 
   return { added, skipped: seen.size - ranked.length };
@@ -263,16 +272,6 @@ async function insertMedia(base: string, service: string, row: Record<string, un
     body: JSON.stringify([row]),
   });
   if (!res.ok) console.error("insert_media_failed", res.status, (await res.text()).slice(0, 200));
-  return res.ok;
-}
-
-async function upload(base: string, service: string, path: string, bytes: Uint8Array, mime: string) {
-  const res = await fetch(`${base}/storage/v1/object/${BUCKET}/${path}`, {
-    method: "POST",
-    headers: { ...authHeaders(service), "Content-Type": mime, "x-upsert": "true" },
-    body: bytes,
-  });
-  if (!res.ok) console.error("upload_failed", res.status, (await res.text()).slice(0, 200));
   return res.ok;
 }
 
@@ -303,6 +302,7 @@ type Candidate = {
   alt: string;
   width: number;
   height: number;
+  mime: string;
   query: string;
 };
 
@@ -345,6 +345,7 @@ function score(page: CommonsPage, place: Place): Candidate | null {
     alt: stripHtml(meta.ImageDescription?.value) || stripFile(page.title),
     width,
     height,
+    mime: info.mime,
     query: "",
   };
 }
@@ -368,16 +369,6 @@ async function commons(params: URLSearchParams, attempt = 0): Promise<any> {
     }
     return null;
   }
-}
-
-async function downloadBest(thumburl: string) {
-  if (!thumburl) return null;
-  const res = await fetch(thumburl, { headers: { "User-Agent": USER_AGENT } });
-  if (!res.ok) return null;
-  const mime = (res.headers.get("content-type") ?? "").split(";")[0].trim();
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  if (!EXT_BY_MIME[mime] || bytes.length < 2048) return null;
-  return { mime, bytes };
 }
 
 /* ---------- helpers ---------- */
@@ -417,14 +408,5 @@ function stripHtml(value?: string) {
 
 const stripFile = (title?: string) =>
   (title ?? "").replace(/^File:/, "").replace(/\.[a-z0-9]+$/i, "").replace(/_/g, " ");
-
-function shortHash(value: string) {
-  let a = 2166136261;
-  for (let i = 0; i < value.length; i += 1) {
-    a ^= value.charCodeAt(i);
-    a = Math.imul(a, 16777619);
-  }
-  return (a >>> 0).toString(16).padStart(8, "0");
-}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

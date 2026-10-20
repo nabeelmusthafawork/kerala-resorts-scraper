@@ -3,8 +3,8 @@
 const DATA_URL = "data/resorts.json";
 const DATA_URL_ALL = "data/resorts-all.json";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-// Supabase Edge Function that fetches an image live, stores it in the
-// `locations` bucket, records it in `location_images`, and returns the URL.
+// Supabase Edge Function that resolves image URLs from `listing_media` /
+// `location_images` / Wikimedia Commons. Nothing is downloaded or stored.
 const SUPABASE_URL = "https://lurkdmbjoapgimruktfs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_6RatKlW42cuc8koN45VB2g_pWMIFX7A";
 const IMAGE_API = `${SUPABASE_URL}/functions/v1/img`;
@@ -52,6 +52,11 @@ let imageObserver = null;
 let activeImages = 0;
 const imageQueue = [];
 const imageInflight = new Map();
+const cardMedia = new WeakMap();
+const gallery = { items: [], index: 0, opener: null };
+const prefetched = new Set();
+let armedMedia = null;
+let armedTitle = null;
 
 const el = {};
 
@@ -115,6 +120,14 @@ function cacheElements() {
   el.empty = document.getElementById("empty");
   el.loadMore = document.getElementById("load-more");
   el.resultsNote = document.getElementById("results-note");
+  el.lightbox = document.getElementById("lightbox");
+  el.lightboxImage = document.getElementById("lightbox-image");
+  el.lightboxCaption = document.getElementById("lightbox-caption");
+  el.lightboxCredit = document.getElementById("lightbox-credit");
+  el.lightboxCount = document.getElementById("lightbox-count");
+  el.lightboxPrev = document.querySelector("[data-lightbox-prev]");
+  el.lightboxNext = document.querySelector("[data-lightbox-next]");
+  el.lightboxClose = document.querySelector("[data-lightbox-close]");
   el.fieldSvg = document.getElementById("terrain-field");
   el.fieldTip = document.getElementById("field-tip");
   el.fieldCount = document.getElementById("field-count");
@@ -205,10 +218,56 @@ function bindStaticEvents() {
     removeFilter(button.dataset.remove, button.dataset.value || "");
   });
 
+  el.results.addEventListener("pointerover", (event) => {
+    const card = event.target.closest(".stay-card");
+    if (!card?.dataset.slug) return;
+    prefetchStay(card.dataset.slug);
+    if (event.target.closest("[data-gallery]")) return;
+    armTransition(card);
+  });
+
+  el.results.addEventListener("focusin", (event) => {
+    const card = event.target.closest(".stay-card");
+    if (!card?.dataset.slug) return;
+    prefetchStay(card.dataset.slug);
+    if (event.target.closest("[data-gallery]")) return;
+    armTransition(card);
+  });
+
   el.results.addEventListener("click", (event) => {
     const reset = event.target.closest("[data-reset]");
     if (reset) resetFilters();
+    const galleryButton = event.target.closest("[data-gallery]");
+    if (galleryButton) {
+      disArmTransition();
+      openGallery(galleryButton.closest(".stay-card"));
+      return;
+    }
+    const card = event.target.closest(".stay-card");
+    if (card?.dataset.slug) {
+      prefetchStay(card.dataset.slug);
+      armTransition(card);
+    }
+    if (event.target.closest("a, button")) return;
+    if (card?.dataset.slug) {
+      window.location.href = `stay.html?slug=${encodeURIComponent(card.dataset.slug)}`;
+    }
   });
+
+  if (el.lightbox) {
+    el.lightboxClose.addEventListener("click", closeGallery);
+    el.lightboxPrev.addEventListener("click", () => stepGallery(-1));
+    el.lightboxNext.addEventListener("click", () => stepGallery(1));
+    el.lightbox.addEventListener("click", (event) => {
+      if (event.target === el.lightbox) closeGallery();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (el.lightbox.hidden) return;
+      if (event.key === "Escape") { event.preventDefault(); closeGallery(); }
+      if (event.key === "ArrowLeft") { event.preventDefault(); stepGallery(-1); }
+      if (event.key === "ArrowRight") { event.preventDefault(); stepGallery(1); }
+    });
+  }
 
   window.addEventListener("popstate", () => {
     readURL();
@@ -507,7 +566,7 @@ function renderResults() {
 }
 
 function cardTemplate(stay, index) {
-  const target = safeUrl(stay.website) || safeUrl(stay.maps_url);
+  const detail = `stay.html?slug=${encodeURIComponent(stay.slug)}`;
   const title = escapeHTML(stay.name);
   const alt = escapeHTML(stay.image_alt || `${stay.setting_label} landscape near ${stay.town}, Kerala`);
   const website = safeUrl(stay.website);
@@ -515,7 +574,7 @@ function cardTemplate(stay, index) {
   const badges = buildBadges(stay);
   const why = (stay.why || []).slice(0, 3).map((line) => `<li>${escapeHTML(line)}</li>`).join("");
   const imageMarkup = stay.image
-    ? `<img src="${escapeAttr(stay.image)}" alt="${alt}" width="1200" height="900" loading="lazy" decoding="async" data-static-image>`
+    ? `<img src="${escapeAttr(stay.image)}" alt="${alt}" width="1200" height="900" loading="lazy" decoding="async" data-static-image data-state="loaded">`
     : `<img alt="" width="1000" height="750" loading="lazy" decoding="async" data-live-image data-state="loading" data-key="${escapeAttr(stay.image_key)}">`;
   const creditMarkup = stay.image && stay.image_page
     ? `<a class="stay-credit" href="${escapeAttr(stay.image_page)}" target="_blank" rel="noopener" title="Photo: ${escapeAttr(stay.image_author || "Wikimedia Commons")}">Photo: ${escapeHTML(stay.image_author || "Wikimedia Commons")} · ${escapeHTML(stay.image_license || "See source")}</a>`
@@ -525,13 +584,15 @@ function cardTemplate(stay, index) {
     <article class="stay-card" data-slug="${escapeAttr(stay.slug)}" style="--i:${index % 12}">
       <figure class="stay-media${stay.image ? "" : " is-loading"}">
         ${imageMarkup}
-        <a class="stay-media-hit" href="${escapeAttr(target)}" target="_blank" rel="noopener" aria-label="${title}, open location"></a>
+        <a class="stay-media-hit" href="${escapeAttr(detail)}" aria-label="Open the stay file for ${title}"></a>
+        <button class="stay-media-gallery" type="button" data-gallery aria-label="View photos of ${title}">Photos</button>
         <span class="stay-rank">No. ${String(stay.rank).padStart(2, "0")}</span>
+        <span class="stay-open">Open file ↗</span>
         ${creditMarkup}
       </figure>
       <div class="stay-body">
         <div class="stay-kicker"><span>${escapeHTML(stay.type)}</span><span>${escapeHTML(stay.town)}, ${escapeHTML(stay.district)}</span></div>
-        <h3 class="stay-name"><a href="${escapeAttr(target)}" target="_blank" rel="noopener">${title}</a></h3>
+        <h3 class="stay-name"><a href="${escapeAttr(detail)}">${title}</a></h3>
         <div class="stay-rating">
           <strong>${stay.rating.toFixed(1)}</strong><span class="star" aria-hidden="true">★</span>
           <span>${formatNumber(stay.reviews)} reviews</span>
@@ -539,8 +600,11 @@ function cardTemplate(stay, index) {
         <ul class="stay-why">${why}</ul>
         <div class="stay-badges">${badges}</div>
         <div class="stay-actions">
-          ${website ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">Website ↗</a>` : `<span></span>`}
-          ${maps ? `<a class="map-link" href="${escapeAttr(maps)}" target="_blank" rel="noopener">Map ↗</a>` : ""}
+          <a href="${escapeAttr(detail)}">Stay file →</a>
+          <span class="stay-actions-out">
+            ${website ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">Website ↗</a>` : ""}
+            ${maps ? `<a class="map-link" href="${escapeAttr(maps)}" target="_blank" rel="noopener">Map ↗</a>` : ""}
+          </span>
         </div>
       </div>
     </article>
@@ -604,17 +668,21 @@ function enqueueImage(img) {
   const key = img.dataset.key;
   if (!key || img.dataset.queued) return;
   img.dataset.queued = "1";
+
+  const paint = (items) => {
+    const card = img.closest(".stay-card");
+    if (card && items.length) cardMedia.set(card, items);
+    if (items.length) paintImage(img, items[0]);
+    else markEmpty(img);
+  };
+
   if (imageInflight.has(key)) {
-    imageInflight.get(key).then((info) => {
-      if (info) paintImage(img, info);
-      else markEmpty(img);
-    });
+    imageInflight.get(key).then(paint);
     return;
   }
-  const task = () => resolveImage(key, img.closest(".stay-card")).then((info) => {
+  const task = () => resolveImages(key).then((items) => {
     imageInflight.delete(key);
-    if (info) paintImage(img, info);
-    else markEmpty(img);
+    paint(items);
   });
   imageInflight.set(key, new Promise((resolve) => {
     imageQueue.push(() => task().then(resolve));
@@ -635,18 +703,19 @@ function drainImageQueue() {
   }
 }
 
-async function resolveImage(key, card) {
+async function resolveImages(key) {
   const stay = DATA.stays.find((item) => item.image_key === key);
-  if (!stay) return null;
+  if (!stay) return [];
 
   const stored = await resolveFromImageApi(key, stay);
-  if (stored) return stored;
+  if (stored.length) return stored;
 
-  return resolveFromCommons(key, stay);
+  const live = await resolveFromCommons(key, stay);
+  return live ? [live] : [];
 }
 
-// The Supabase Edge Function fetches live from Commons, stores the image, and
-// returns its public URL. If IMAGE_API is unset, the site calls Commons directly.
+// The Supabase Edge Function returns image URLs already recorded for the
+// listing. If IMAGE_API is unset, the site calls Commons directly.
 async function resolveFromImageApi(key, stay) {
   if (!IMAGE_API) return null;
   const params = new URLSearchParams({
@@ -657,19 +726,29 @@ async function resolveFromImageApi(key, stay) {
   });
   // The full-record dataset carries the place id, so the function can reuse an
   // image the background harvester already stored for that listing.
-  if (stay.place_id) params.set("place_id", stay.place_id);
+  const placeId = placeIdFromStay(stay);
+  if (placeId) {
+    params.set("place_id", placeId);
+    params.set("list", "1");
+  }
   try {
     const res = await fetch(`${IMAGE_API}?${params.toString()}`, {
       cache: "no-store",
       headers: { apikey: SUPABASE_KEY },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const info = await res.json();
-    if (!info?.url) return null;
-    return info;
+    if (Array.isArray(info?.images)) return info.images.filter((item) => item?.url);
+    return info?.url ? [info] : [];
   } catch {
-    return null;
+    return [];
   }
+}
+
+function placeIdFromStay(stay) {
+  if (stay?.place_id) return stay.place_id;
+  const match = String(stay?.maps_url || "").match(/place_id:([^&]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
 }
 
 async function resolveFromCommons(key, stay) {
@@ -819,6 +898,95 @@ function scoreCandidate(page, stay) {
     license_url: stripHtml(meta.LicenseUrl?.value) || "",
     alt: stripHtml(meta.ImageDescription?.value) || stripFile(page.title),
   };
+}
+
+/* Lightbox gallery: the card shows the best photo; clicking it opens the
+   6 URLs the harvester recorded for that listing (all hotlinked). */
+async function openGallery(card) {
+  if (!card || !el.lightbox) return;
+  const button = card.querySelector("[data-gallery]");
+  const img = card.querySelector("img");
+  const stay = DATA?.stays.find((item) => item.slug === card.dataset.slug);
+  const token = (gallery.token = (gallery.token || 0) + 1);
+
+  // Open the lightbox shell immediately with whatever photo the card already
+  // shows. The full set replaces it when the resolver returns.
+  let items = cardMedia.get(card);
+  if (!items?.length && img?.src) {
+    items = [{
+      url: img.src,
+      page: stay?.image_page || "",
+      title: stay?.name || "",
+      author: stay?.image_author || "Wikimedia Commons",
+      license: stay?.image_license || "See source",
+      alt: img.alt || stay?.name || "",
+    }];
+  }
+  if (!items?.length) items = [];
+
+  gallery.items = items;
+  gallery.index = 0;
+  gallery.opener = button || card;
+  el.lightbox.hidden = false;
+  el.lightbox.setAttribute("aria-hidden", "false");
+  document.body.classList.add("lightbox-open");
+  renderGallery();
+  el.lightboxClose.focus();
+
+  if (cardMedia.has(card)) return;
+  if (!img?.dataset.key) return;
+
+  if (button) button.disabled = true;
+  try {
+    const resolved = await resolveImages(img.dataset.key);
+    if (!resolved.length) return;
+    cardMedia.set(card, resolved);
+    if (token !== gallery.token || el.lightbox.hidden) return;
+    gallery.items = resolved;
+    if (gallery.index >= resolved.length) gallery.index = 0;
+    renderGallery();
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function renderGallery() {
+  const item = gallery.items[gallery.index];
+  if (!item) {
+    el.lightboxImage.removeAttribute("src");
+    el.lightboxImage.alt = "";
+    el.lightboxCaption.textContent = "Loading photos…";
+    el.lightboxCount.textContent = "";
+    el.lightboxCredit.hidden = true;
+    el.lightboxPrev.hidden = true;
+    el.lightboxNext.hidden = true;
+    return;
+  }
+  el.lightboxImage.src = item.url;
+  el.lightboxImage.alt = item.alt || "Kerala landscape";
+  el.lightboxCaption.textContent = item.title || "Kerala landscape";
+  el.lightboxCount.textContent = `${gallery.index + 1} / ${gallery.items.length}`;
+  el.lightboxCredit.hidden = !item.page;
+  el.lightboxCredit.href = item.page || "#";
+  el.lightboxCredit.textContent = `Photo: ${shorten(item.author || "Wikimedia Commons", 48)} · ${item.license || "See source"}`;
+  el.lightboxPrev.hidden = gallery.items.length < 2;
+  el.lightboxNext.hidden = gallery.items.length < 2;
+}
+
+function stepGallery(step) {
+  if (!gallery.items.length) return;
+  const size = gallery.items.length;
+  gallery.index = (gallery.index + step + size) % size;
+  renderGallery();
+}
+
+function closeGallery() {
+  if (!el.lightbox || el.lightbox.hidden) return;
+  el.lightbox.hidden = true;
+  el.lightbox.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("lightbox-open");
+  el.lightboxImage.removeAttribute("src");
+  if (gallery.opener && document.contains(gallery.opener)) gallery.opener.focus();
 }
 
 function paintImage(img, info) {
@@ -1050,6 +1218,39 @@ function resetFilters() {
   setFiltersOpen(false);
   applyFilters();
   el.search.focus({ preventScroll: true });
+}
+
+/* Navigation polish: prefetch the next document, and let the browser animate
+   the card photo and title into the stay file when it supports view
+   transitions. Browsers without support just navigate. */
+function prefetchStay(slug) {
+  if (!slug || prefetched.has(slug)) return;
+  prefetched.add(slug);
+  const link = document.createElement("link");
+  link.rel = "prefetch";
+  link.as = "document";
+  link.href = `stay.html?slug=${encodeURIComponent(slug)}`;
+  document.head.appendChild(link);
+}
+
+function armTransition(card) {
+  if (!card) return;
+  const media = card.querySelector(".stay-media");
+  const title = card.querySelector(".stay-name");
+  if (!media || !title) return;
+  if (armedMedia === media && armedTitle === title) return;
+  disArmTransition();
+  media.style.viewTransitionName = "stay-photo";
+  title.style.viewTransitionName = "stay-title";
+  armedMedia = media;
+  armedTitle = title;
+}
+
+function disArmTransition() {
+  if (armedMedia) armedMedia.style.viewTransitionName = "";
+  if (armedTitle) armedTitle.style.viewTransitionName = "";
+  armedMedia = null;
+  armedTitle = null;
 }
 
 /* Utilities */

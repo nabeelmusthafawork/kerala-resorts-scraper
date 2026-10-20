@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stay file — Kerala Field Notes</title>
+  <meta name="description" content="A single stay file from Kerala Field Notes: the evidence, the terrain, the amenities, and the surrounding landscape.">
+  <meta name="theme-color" content="#0c1f1a">
+  <meta name="robots" content="noindex, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Stay file — Kerala Field Notes">
+  <meta property="og:description" content="The evidence, the terrain, and the surrounding landscape for one Kerala stay.">
+  <meta property="og:image" content="https://nabeelmusthafawork.github.io/kerala-resorts-scraper/assets/og.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://thumb.wikimedia.org">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Instrument+Sans:ital,wght@0,400..700;1,400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="stay.css">
+  <script src="stay.js" defer></script>
+</head>
+<body class="sd-body is-inner">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="sd-progress" data-progress aria-hidden="true"><span></span></div>
+
+  <header class="site-header" data-header>
+    <a class="brand" href="index.html" aria-label="Kerala Field Notes, home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 34 34" fill="none"><path d="M4 24.5c5.4-7.6 8.7-3.9 13.1-8.4C21.7 11.4 24.8 8 30 6.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 29c6.3-4.8 9.4-1.4 14.1-5.6 4.2-3.7 7.6-6.7 11.9-7.1" stroke="currentColor" stroke-width="1.4" opacity=".5"/><circle cx="17" cy="17" r="2.2" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-type"><span>Kerala</span><em>Field Notes</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html#shortlist">Shortlist</a>
+      <a href="index.html#terrain">Terrain</a>
+      <a href="method.html">Method</a>
+      <a href="api.html">API</a>
+    </nav>
+    <a class="header-cta" href="index.html#shortlist"><span aria-hidden="true">←</span> All stays</a>
+  </header>
+
+  <main id="main" class="sd-main" data-stay-root aria-busy="true">
+    <section class="sd-hero" aria-labelledby="stay-title">
+      <div class="sd-hero-copy">
+        <p class="sd-kicker"><span data-field="rank">Stay file</span> <span data-field="place">Kerala</span></p>
+        <h1 class="sd-title" id="stay-title" data-field="name">Loading the field file…</h1>
+        <p class="sd-dek" data-field="dek"></p>
+        <div class="sd-hero-stats" data-field="hero-stats"></div>
+        <div class="sd-hero-actions" data-field="hero-actions"></div>
+      </div>
+      <figure class="sd-hero-figure" data-field="hero-figure">
+        <div class="sd-hero-frame is-loading">
+          <img data-field="hero-image" alt="" width="1200" height="900" decoding="async">
+          <button class="sd-hero-open" type="button" data-open-gallery aria-label="Open the photo gallery" hidden></button>
+          <figcaption class="sd-hero-credit" data-field="hero-credit"></figcaption>
+        </div>
+      </figure>
+    </section>
+
+    <section class="sd-strip" aria-label="Photo gallery" data-field="thumb-strip" hidden></section>
+
+    <nav class="sd-jump" data-jump aria-label="Stay file sections">
+      <a href="#case" data-jump-link="case">The case</a>
+      <a href="#terrain" data-jump-link="terrain">Terrain</a>
+      <a href="#reviews" data-jump-link="reviews">Reviews</a>
+      <a href="#photos" data-jump-link="photos">Photos</a>
+      <a href="#location" data-jump-link="location">Location</a>
+      <span class="sd-jump-meta" data-jump-meta></span>
+    </nav>
+
+    <div class="sd-layout">
+      <div class="sd-main-column">
+        <section class="sd-section" id="case" aria-labelledby="case-title" data-section="case">
+          <div class="sd-section-head"><span class="sd-index">01</span><h2 id="case-title">The case</h2></div>
+          <ul class="sd-case" data-field="why"></ul>
+          <p class="sd-prose" data-field="description" hidden></p>
+          <p class="sd-caveat">Why lines come from the listing copy and the geography around it. They are evidence, not a verdict.</p>
+        </section>
+
+        <section class="sd-section" id="terrain" aria-labelledby="terrain-title" data-section="terrain">
+          <div class="sd-section-head"><span class="sd-index">02</span><h2 id="terrain-title">The terrain</h2></div>
+          <dl class="sd-terrain" data-field="terrain"></dl>
+          <p class="sd-caveat">Distances are straight-line measurements from the property coordinate, not driving distance.</p>
+        </section>
+
+        <section class="sd-section" id="reviews" aria-labelledby="reviews-title" data-section="reviews">
+          <div class="sd-section-head"><span class="sd-index">03</span><h2 id="reviews-title">The reviews</h2></div>
+          <div class="sd-review-card" data-field="reviews"></div>
+          <p class="sd-caveat" data-field="reviews-caveat"></p>
+        </section>
+
+        <section class="sd-section" id="photos" aria-labelledby="photos-title" data-section="photos">
+          <div class="sd-section-head"><span class="sd-index">04</span><h2 id="photos-title">Around the stay</h2></div>
+          <div class="sd-photo-grid" data-field="photo-grid"></div>
+          <p class="sd-caveat">Photos show the surrounding landscape, hotlinked from Wikimedia Commons with attribution. They are not photographs of the property itself.</p>
+        </section>
+
+        <section class="sd-section sd-location" id="location" aria-labelledby="location-title" data-section="location" data-field="location-section" hidden>
+          <div class="sd-section-head"><span class="sd-index">05</span><h2 id="location-title">The location</h2></div>
+          <div class="sd-map" data-field="map"></div>
+          <p class="sd-caveat">Map data © OpenStreetMap contributors. The marker is the listing coordinate, not a verified entrance.</p>
+        </section>
+      </div>
+
+      <aside class="sd-aside" aria-label="Stay details">
+        <div class="sd-ledger">
+          <h2 class="sd-ledger-title">Field ledger</h2>
+          <dl data-field="ledger"></dl>
+        </div>
+        <div class="sd-ledger" data-field="amenities-block">
+          <h2 class="sd-ledger-title">On the property</h2>
+          <ul class="sd-amenities" data-field="amenities"></ul>
+        </div>
+        <div class="sd-cta">
+          <p class="sd-cta-label">Go direct</p>
+          <p class="sd-cta-copy">Kerala Field Notes takes no commission. Links open the property’s own site or Google Maps.</p>
+          <div class="sd-cta-actions" data-field="cta"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="sd-more" data-field="more" aria-labelledby="more-title" hidden>
+      <div class="sd-section-head"><span class="sd-index">+</span><h2 id="more-title" data-field="more-title">More in the district</h2></div>
+      <div class="sd-more-list" data-field="more-list"></div>
+    </section>
+
+    <section class="sd-error" data-field="error" hidden>
+      <h2>That stay file is not here.</h2>
+      <p>The link may be old, or the listing may have left the dataset. The shortlist is still where it was.</p>
+      <a class="button" href="index.html#shortlist">Back to the shortlist <span aria-hidden="true">→</span></a>
+    </section>
+
+    <nav class="sd-next" aria-label="More stays" data-field="next" hidden>
+      <a class="sd-next-link" data-next-link href="index.html#shortlist">
+        <span class="sd-next-label" data-next-label>Next stay</span>
+        <span class="sd-next-name" data-next-name></span>
+        <span class="sd-next-meta" data-next-meta></span>
+      </a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <a class="footer-brand" href="index.html" aria-label="Kerala Field Notes, home">
+        <span>Kerala</span><em>Field Notes</em>
+      </a>
+      <p class="footer-note">An independent, evidence-led field guide to Kerala stays. Built from public data. No booking commissions.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="index.html#shortlist">Shortlist</a>
+        <a href="method.html">Method</a>
+        <a href="api.html">API</a>
+        <a href="method.html#credits">Image credits</a>
+        <a href="https://github.com/nabeelmusthafawork/kerala-resorts-scraper" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>Kerala Field Notes / 2026</span>
+      <span>Built with public evidence, not paid placement.</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Stay photos" aria-hidden="true" hidden>
+    <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close photos">Close</button>
+    <button class="lightbox-nav lightbox-prev" type="button" data-lightbox-prev aria-label="Previous photo">‹</button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-image" alt="" decoding="async">
+      <figcaption class="lightbox-caption">
+        <span id="lightbox-caption"></span>
+        <span id="lightbox-count" class="lightbox-count" aria-live="polite"></span>
+        <a id="lightbox-credit" class="lightbox-credit" href="#" target="_blank" rel="noopener"></a>
+      </figcaption>
+      <p class="sd-lightbox-hint">Swipe or use ← → · Esc to close</p>
+    </figure>
+    <button class="lightbox-nav lightbox-next" type="button" data-lightbox-next aria-label="Next photo">›</button>
+  </div>
+
+  <nav class="sd-dock" data-dock aria-label="Stay actions" hidden>
+    <div class="sd-dock-copy">
+      <strong data-dock-name></strong>
+      <span data-dock-meta></span>
+    </div>
+    <div class="sd-dock-actions" data-dock-actions></div>
+  </nav>
+
+  <div class="sd-toast" data-toast role="status" aria-live="polite" hidden></div>
+</body>
+</html>

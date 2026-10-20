@@ -305,5 +305,19 @@
       <a href="#main">Back to top ↑</a>
     </div>
   </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Listing photos" aria-hidden="true" hidden>
+    <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close photos">Close</button>
+    <button class="lightbox-nav lightbox-prev" type="button" data-lightbox-prev aria-label="Previous photo">‹</button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-image" alt="" decoding="async">
+      <figcaption class="lightbox-caption">
+        <span id="lightbox-caption"></span>
+        <span id="lightbox-count" class="lightbox-count"></span>
+        <a id="lightbox-credit" class="lightbox-credit" href="#" target="_blank" rel="noopener"></a>
+      </figcaption>
+    </figure>
+    <button class="lightbox-nav lightbox-next" type="button" data-lightbox-next aria-label="Next photo">›</button>
+  </div>
 </body>
 </html>

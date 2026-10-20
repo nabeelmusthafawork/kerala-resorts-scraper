@@ -3,20 +3,20 @@
  *
  * GET /functions/v1/img?key=<key>&town=<town>&district=<district>&setting=<setting>
  *
- *   1. Look up location_images by image_key. If present, return the stored
- *      public Storage URL and credit. No Commons call.
- *   2. Otherwise query Wikimedia Commons, score candidates, download the best
- *      thumbnail, upload it to the public `locations` bucket, upsert the row,
- *      and return the public URL.
+ *   1. Look up location_images by image_key. If present, return its URL and
+ *      credit. No Commons call.
+ *   2. Otherwise query Wikimedia Commons, score candidates, record the best
+ *      thumbnail URL, and return it. Nothing is downloaded or uploaded.
+ *   3. With `list=1` the response is `{ images: [...] }` (up to 6) for the
+ *      gallery instead of one `{ url }`.
  *
- * No external imports. Talks to PostgREST and Storage over fetch.
+ * No external imports. Talks to PostgREST over fetch.
  * Responses use Cache-Control: no-store, so nothing is cached on the user end.
  */
 
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 const USER_AGENT =
   "KeralaFieldNotes/1.0 (https://github.com/nabeelmusthafawork/kerala-resorts-scraper)";
-const BUCKET = "locations";
 const EXT_BY_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const url = new URL(req.url);
-  if (url.pathname.endsWith("/health")) return json({ ok: true, bucket: BUCKET }, 200, cors);
+  if (url.pathname.endsWith("/health")) return json({ ok: true }, 200, cors);
 
   const key = sanitizeKey(url.searchParams.get("key"));
   if (!key) return json({ error: "missing_key" }, 400, cors);
@@ -83,36 +83,36 @@ Deno.serve(async (req: Request) => {
     setting: clean(url.searchParams.get("setting")) || "landscape",
   };
 
-  // When the caller knows the listing, prefer an image the background harvester
-  // already stored for that place. Avoids fetching and storing a second copy.
+  const wantList = url.searchParams.get("list") === "1";
+
+  // When the caller knows the listing, prefer the images the background
+  // harvester already recorded for that place.
   const placeId = (url.searchParams.get("place_id") ?? "").trim().slice(0, 120);
   if (placeId) {
-    const scraped = await findScraped(base, service, placeId);
-    if (scraped) return json({ ...scraped, stored: true, source: "scraped" }, 200, noStore(cors));
+    const scraped = await findScraped(base, service, placeId, wantList ? 6 : 1);
+    if (scraped.length) {
+      if (wantList) return json({ images: scraped, source: "scraped" }, 200, noStore(cors));
+      return json({ ...scraped[0], stored: true, source: "scraped" }, 200, noStore(cors));
+    }
   }
 
   try {
     const existing = await findStored(base, service, key);
-    if (existing) return json({ ...existing, stored: true, source: "storage" }, 200, noStore(cors));
+    if (existing) {
+      if (wantList) return json({ images: [{ ...existing, title: existing.title }], source: "storage" }, 200, noStore(cors));
+      return json({ ...existing, stored: true, source: "storage" }, 200, noStore(cors));
+    }
 
     const pick = await pickCandidate(stay, key);
     if (!pick) return json({ error: "no_candidate" }, 404, cors);
 
-    const asset = await downloadBest(pick.thumburl);
-    if (!asset) return json({ error: "download_failed" }, 502, cors);
+    const ext = EXT_BY_MIME[pick.mime];
+    if (!ext) return json({ error: "unsupported_type", mime: pick.mime }, 415, cors);
 
-    const ext = EXT_BY_MIME[asset.mime];
-    if (!ext) return json({ error: "unsupported_type", mime: asset.mime }, 415, cors);
-
-    const path = `${key}.${ext}`;
-    const uploaded = await upload(base, service, path, asset.bytes, asset.mime);
-    if (!uploaded) return json({ error: "upload_failed" }, 502, cors);
-
-    const publicUrl = `${base}/storage/v1/object/public/${BUCKET}/${path}?v=${Date.now()}`;
     const row = {
       image_key: key,
-      storage_path: path,
-      public_url: publicUrl,
+      storage_path: null,
+      public_url: pick.thumburl,
       ext,
       title: pick.meta.title,
       author: pick.meta.author,
@@ -122,14 +122,13 @@ Deno.serve(async (req: Request) => {
       alt: pick.meta.alt,
       width: pick.width ?? null,
       height: pick.height ?? null,
+      source: "commons",
     };
     await upsert(base, service, row);
 
-    return json(
-      { url: publicUrl, ...pick.meta, stored: true, source: "commons" },
-      200,
-      noStore(cors),
-    );
+    const info = { url: pick.thumburl, ...pick.meta, source: "commons" };
+    if (wantList) return json({ images: [info], source: "commons" }, 200, noStore(cors));
+    return json({ ...info, stored: true }, 200, noStore(cors));
   } catch (error) {
     return json(
       { error: "function_error", detail: String((error as Error)?.message ?? error) },
@@ -206,25 +205,27 @@ async function findStored(base: string, service: string, key: string) {
   };
 }
 
-async function findScraped(base: string, service: string, placeId: string) {
+async function findScraped(base: string, service: string, placeId: string, limit: number) {
   const res = await rest(
     base,
     service,
-    `listing_media?place_id=eq.${encodeURIComponent(placeId)}&select=public_url,source_page,commons_title,author,license,license_url,alt&order=score.desc&limit=1`,
+    `listing_media?place_id=eq.${encodeURIComponent(placeId)}&select=public_url,source_page,commons_title,author,license,license_url,alt,width,height&order=score.desc&limit=${limit}`,
   );
-  if (!res.ok) return null;
+  if (!res.ok) return [];
   const rows = await res.json();
-  const row = Array.isArray(rows) && rows[0];
-  if (!row?.public_url) return null;
-  return {
-    url: row.public_url,
-    page: row.source_page ?? "",
-    title: row.commons_title ?? "",
-    author: row.author ?? "Wikimedia Commons",
-    license: row.license ?? "See source",
-    license_url: row.license_url ?? "",
-    alt: row.alt ?? "",
-  };
+  return (Array.isArray(rows) ? rows : [])
+    .filter((row) => row?.public_url)
+    .map((row) => ({
+      url: row.public_url,
+      page: row.source_page ?? "",
+      title: row.commons_title ?? "",
+      author: row.author ?? "Wikimedia Commons",
+      license: row.license ?? "See source",
+      license_url: row.license_url ?? "",
+      alt: row.alt ?? "",
+      width: row.width ?? null,
+      height: row.height ?? null,
+    }));
 }
 
 async function upsert(base: string, service: string, row: Record<string, unknown>) {
@@ -233,28 +234,6 @@ async function upsert(base: string, service: string, row: Record<string, unknown
     headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
     body: JSON.stringify([row]),
   });
-}
-
-async function upload(
-  base: string,
-  service: string,
-  path: string,
-  bytes: Uint8Array,
-  mime: string,
-) {
-  const res = await fetch(`${base}/storage/v1/object/${BUCKET}/${path}`, {
-    method: "POST",
-    headers: {
-      ...authHeaders(service),
-      "Content-Type": mime,
-      "x-upsert": "true",
-    },
-    body: bytes,
-  });
-  if (!res.ok) {
-    console.error("upload_failed", res.status, (await res.text()).slice(0, 300));
-  }
-  return res.ok;
 }
 
 async function pickCandidate(
@@ -295,6 +274,7 @@ async function pickCandidate(
     thumburl: best.thumburl,
     width: best.width,
     height: best.height,
+    mime: best.mime,
     meta: {
       page: best.page, title: best.title, author: best.author,
       license: best.license, license_url: best.license_url, alt: best.alt,
@@ -317,6 +297,7 @@ type CommonsPage = {
 type Candidate = {
   score: number;
   thumburl: string;
+  mime: string;
   page: string;
   title: string;
   author: string;
@@ -358,6 +339,7 @@ function score(
   return {
     score: points,
     thumburl: info.thumburl,
+    mime: info.mime,
     page: info.descriptionurl ?? "",
     title: page.title ?? "",
     author: stripHtml(meta.Artist?.value) || "Wikimedia Commons",
@@ -388,16 +370,6 @@ async function commons(params: URLSearchParams, attempt = 0): Promise<any> {
     }
     return null;
   }
-}
-
-async function downloadBest(thumburl: string) {
-  if (!thumburl) return null;
-  const res = await fetch(thumburl, { headers: { "User-Agent": USER_AGENT } });
-  if (!res.ok) return null;
-  const mime = (res.headers.get("content-type") ?? "").split(";")[0].trim();
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  if (!EXT_BY_MIME[mime] || bytes.length < 1024) return null;
-  return { mime, bytes };
 }
 
 function stripHtml(value?: string) {
